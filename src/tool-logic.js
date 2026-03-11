@@ -100,6 +100,52 @@ export const schemas = {
       range: { type: "string" },
     },
   },
+  findReplace: {
+    type: "object",
+    required: ["sheetId", "find"],
+    properties: {
+      sheetId: { type: "string" },
+      find: { type: "string" },
+      replace: { type: "string" },
+      caseSensitive: { type: "boolean" },
+      rangeOnly: { type: "string" },
+    },
+  },
+  addColumn: {
+    type: "object",
+    required: ["sheetId", "header"],
+    properties: {
+      sheetId: { type: "string" },
+      header: { type: "string" },
+      values: { type: "array", items: { type: "string" } },
+      position: { type: "number" },
+    },
+  },
+  computeColumn: {
+    type: "object",
+    required: ["sheetId", "targetColumn", "formula"],
+    properties: {
+      sheetId: { type: "string" },
+      targetColumn: { type: "string" },
+      formula: { type: "string" },
+    },
+  },
+  deleteRows: {
+    type: "object",
+    required: ["sheetId", "rows"],
+    properties: {
+      sheetId: { type: "string" },
+      rows: { type: "array", items: { type: "number" } },
+    },
+  },
+  renameSheet: {
+    type: "object",
+    required: ["sheetId", "newSheetId"],
+    properties: {
+      sheetId: { type: "string" },
+      newSheetId: { type: "string" },
+    },
+  },
 };
 
 export function validateArgs(schema, args) {
@@ -309,6 +355,129 @@ export function makeAppContext({ ethercalcBaseUrl }) {
           preview: tablePreview(subTable),
         },
         _meta: widgetMeta(sheetId, "range-snapshot", { range }),
+      };
+    },
+
+    async findReplace({ sheetId, find, replace = "", caseSensitive = false, rangeOnly }) {
+      const table = await client.getTable(sheetId);
+      let bounds = null;
+      if (rangeOnly) {
+        bounds = parseRange(rangeOnly);
+      }
+      let changedCells = 0;
+      const updated = table.map((row, r) =>
+        row.map((cell, c) => {
+          if (bounds && (r < bounds.startRow || r > bounds.endRow || c < bounds.startCol || c > bounds.endCol)) {
+            return cell;
+          }
+          const cellStr = String(cell ?? "");
+          const findStr = find;
+          const haystack = caseSensitive ? cellStr : cellStr.toLowerCase();
+          const needle = caseSensitive ? findStr : findStr.toLowerCase();
+          if (!haystack.includes(needle)) return cell;
+          changedCells += 1;
+          if (caseSensitive) {
+            return cellStr.split(findStr).join(replace);
+          }
+          return cellStr.replace(new RegExp(findStr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), replace);
+        })
+      );
+      await client.putTable(sheetId, updated);
+      knownSheets.add(sheetId);
+      return {
+        content: [{ type: "text", text: `Replaced "${find}" with "${replace}" in ${changedCells} cell(s) in ${sheetId}.` }],
+        structuredContent: {
+          sheetId,
+          find,
+          replace,
+          changedCells,
+          preview: tablePreview(updated),
+        },
+        _meta: widgetMeta(sheetId, "find-replace", { find, replace }),
+      };
+    },
+
+    async addColumn({ sheetId, header, values = [], position }) {
+      const table = await client.getTable(sheetId);
+      const insertAt = position != null ? position : Math.max(0, ...table.map((row) => row.length));
+      const updated = table.map((row, r) => {
+        const newRow = [...row];
+        const val = r === 0 ? header : (values[r - 1] ?? "");
+        newRow.splice(insertAt, 0, val);
+        return newRow;
+      });
+      await client.putTable(sheetId, updated);
+      knownSheets.add(sheetId);
+      return {
+        content: [{ type: "text", text: `Added column "${header}" at position ${insertAt} in ${sheetId}.` }],
+        structuredContent: {
+          sheetId,
+          header,
+          position: insertAt,
+          preview: tablePreview(updated),
+        },
+        _meta: widgetMeta(sheetId, "add-column", { header, position: insertAt }),
+      };
+    },
+
+    async computeColumn({ sheetId, targetColumn, formula }) {
+      const table = await client.getTable(sheetId);
+      const dataRows = table.length > 1 ? table.length - 1 : 0;
+      for (let i = 1; i <= dataRows; i += 1) {
+        const cell = `${targetColumn}${i + 1}`;
+        const resolvedFormula = formula.replace(/\{row\}/g, String(i + 1));
+        try {
+          await client.postCommand(sheetId, `set ${cell} formula ${resolvedFormula}\n`);
+        } catch {
+          const current = await client.getTable(sheetId);
+          const patched = setRangeValues(current, cell, [[resolvedFormula]]);
+          await client.putTable(sheetId, patched);
+        }
+      }
+      const finalTable = await client.getTable(sheetId);
+      knownSheets.add(sheetId);
+      return {
+        content: [{ type: "text", text: `Computed column ${targetColumn} for ${dataRows} row(s) in ${sheetId}.` }],
+        structuredContent: {
+          sheetId,
+          targetColumn,
+          rowsUpdated: dataRows,
+          preview: tablePreview(finalTable),
+        },
+        _meta: widgetMeta(sheetId, "compute-column", { targetColumn }),
+      };
+    },
+
+    async deleteRows({ sheetId, rows }) {
+      const table = await client.getTable(sheetId);
+      const indices = [...new Set(rows.map((r) => r - 1))].sort((a, b) => b - a);
+      const updated = table.filter((_, idx) => !indices.includes(idx));
+      await client.putTable(sheetId, updated);
+      knownSheets.add(sheetId);
+      return {
+        content: [{ type: "text", text: `Deleted ${indices.length} row(s) from ${sheetId}.` }],
+        structuredContent: {
+          sheetId,
+          deletedRows: indices.length,
+          preview: tablePreview(updated),
+        },
+        _meta: widgetMeta(sheetId, "delete-rows", { rows }),
+      };
+    },
+
+    async renameSheet({ sheetId, newSheetId }) {
+      const table = await client.getTable(sheetId);
+      await client.putTable(newSheetId, table);
+      knownSheets.delete(sheetId);
+      knownSheets.add(newSheetId);
+      return {
+        content: [{ type: "text", text: `Renamed sheet "${sheetId}" to "${newSheetId}".` }],
+        structuredContent: {
+          oldSheetId: sheetId,
+          newSheetId,
+          preview: tablePreview(table),
+        },
+        _meta: widgetMeta(newSheetId, "rename-sheet", { oldSheetId: sheetId }),
       };
     },
   };
