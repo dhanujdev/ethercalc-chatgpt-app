@@ -79,6 +79,30 @@ const toolSpecs = [
     annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     handler: ctx.summarizeSheet,
   },
+  {
+    name: "list_sheets",
+    title: "List sheets",
+    description: "List all spreadsheet IDs that have been created or opened in this session.",
+    inputSchema: schemas.listSheets,
+    annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
+    handler: ctx.listSheets,
+  },
+  {
+    name: "apply_formula",
+    title: "Apply formula",
+    description: "Apply a spreadsheet formula (e.g. =SUM(A1:A10)) to a cell in A1 notation.",
+    inputSchema: schemas.applyFormula,
+    annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
+    handler: ctx.applyFormula,
+  },
+  {
+    name: "get_range_snapshot",
+    title: "Get range snapshot",
+    description: "Read a rectangular range (e.g. A1:C5) or single cell from a sheet.",
+    inputSchema: schemas.getRangeSnapshot,
+    annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
+    handler: ctx.getRangeSnapshot,
+  },
 ];
 
 function schemaToJsonSchema(schema) {
