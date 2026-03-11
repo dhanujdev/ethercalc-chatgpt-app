@@ -24,4 +24,4 @@ jobs:
         run: npm run lint
 
       - name: Unit tests
-        run: node --test test/csv-utils.test.js
+        run: node --test test/csv-utils.test.js test/tool-logic.test.js
