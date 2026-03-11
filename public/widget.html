@@ -16,10 +16,7 @@
         background: transparent;
         color: canvasText;
       }
-      .app {
-        display: grid;
-        gap: 12px;
-      }
+      .app { display: grid; gap: 12px; }
       .card {
         border: 1px solid color-mix(in oklab, canvasText 15%, transparent);
         border-radius: 14px;
@@ -27,177 +24,162 @@
         background: color-mix(in oklab, canvas 96%, canvasText 4%);
       }
       .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-      input, button, textarea {
+      input, button, select, textarea {
         font: inherit;
         border-radius: 10px;
         border: 1px solid color-mix(in oklab, canvasText 20%, transparent);
-        padding: 10px 12px;
+        padding: 8px 12px;
         background: canvas;
         color: canvasText;
       }
-      input { min-width: 200px; }
-      button { cursor: pointer; }
-      iframe {
-        width: 100%;
-        height: 560px;
-        border: 0;
-        border-radius: 12px;
-        background: white;
-      }
-      pre, textarea {
-        width: 100%;
-        min-height: 140px;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-      }
-      .muted { opacity: 0.75; font-size: 0.92rem; }
+      input[type="file"] { padding: 6px; }
+      input.short { min-width: 0; width: 160px; }
+      button { cursor: pointer; white-space: nowrap; }
+      button:disabled { opacity: 0.4; cursor: not-allowed; }
+      .muted { opacity: 0.75; font-size: 0.9rem; }
       .pill {
-        display: inline-block;
-        border-radius: 999px;
-        padding: 4px 10px;
+        display: inline-block; border-radius: 999px;
+        padding: 4px 12px;
         background: color-mix(in oklab, canvasText 8%, transparent);
+        font-size: 0.88rem;
       }
+      .pill.green { background: color-mix(in oklab, limegreen 25%, canvas); }
 
       /* Tab bar */
-      .tab-bar {
-        display: flex;
-        gap: 6px;
-        overflow-x: auto;
-        padding-bottom: 2px;
-        scrollbar-width: thin;
-      }
-      .tab-bar::-webkit-scrollbar { height: 4px; }
-      .tab-bar::-webkit-scrollbar-thumb {
-        background: color-mix(in oklab, canvasText 20%, transparent);
-        border-radius: 4px;
-      }
+      .tab-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
       .tab {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        border-radius: 10px;
+        display: flex; align-items: center; gap: 5px;
+        padding: 5px 12px; border-radius: 10px;
         border: 1px solid color-mix(in oklab, canvasText 15%, transparent);
         background: color-mix(in oklab, canvasText 4%, transparent);
-        cursor: pointer;
-        white-space: nowrap;
-        font-size: 0.9rem;
-        transition: background 0.15s;
+        cursor: pointer; white-space: nowrap; font-size: 0.88rem;
       }
       .tab:hover { background: color-mix(in oklab, canvasText 8%, transparent); }
-      .tab.active { background: color-mix(in oklab, canvasText 12%, transparent); font-weight: 600; }
-      .tab .tab-close {
-        padding: 0 2px;
-        border: none;
-        background: transparent;
-        color: canvasText;
-        cursor: pointer;
-        font-size: 0.85rem;
-        opacity: 0.6;
-        line-height: 1;
-        border-radius: 4px;
+      .tab.active { background: color-mix(in oklab, canvasText 14%, transparent); font-weight: 600; }
+      .tab-close {
+        padding: 0 3px; border: none; background: transparent;
+        color: canvasText; cursor: pointer; opacity: 0.55; line-height: 1; border-radius: 4px;
       }
-      .tab .tab-close:hover { opacity: 1; background: color-mix(in oklab, canvasText 15%, transparent); }
+      .tab-close:hover { opacity: 1; background: color-mix(in oklab, canvasText 12%, transparent); }
       .tab-add {
-        padding: 6px 14px;
-        border-radius: 10px;
+        padding: 5px 14px; border-radius: 10px;
         border: 1px dashed color-mix(in oklab, canvasText 25%, transparent);
-        background: transparent;
-        color: canvasText;
-        cursor: pointer;
-        font-size: 1rem;
-        white-space: nowrap;
-        transition: background 0.15s;
+        background: transparent; color: canvasText; cursor: pointer; font-size: 1rem;
       }
       .tab-add:hover { background: color-mix(in oklab, canvasText 6%, transparent); }
-      .tab-new-input {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-      }
-      .tab-new-input input { min-width: 140px; padding: 6px 10px; font-size: 0.9rem; }
-      .tab-new-input button { padding: 6px 10px; font-size: 0.9rem; }
 
-      /* Chips */
-      .chips {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        align-items: center;
-      }
+      /* Intent chips */
+      .chips { display: flex; gap: 7px; flex-wrap: wrap; }
       .chip {
-        border-radius: 999px;
-        padding: 6px 14px;
-        border: 1px solid color-mix(in oklab, canvasText 20%, transparent);
-        background: canvas;
-        color: canvasText;
-        cursor: pointer;
-        font-size: 0.88rem;
-        transition: background 0.15s, opacity 0.15s;
+        border-radius: 999px; padding: 5px 14px;
+        border: 1px solid color-mix(in oklab, canvasText 18%, transparent);
+        background: canvas; color: canvasText; cursor: pointer; font-size: 0.85rem;
       }
       .chip:hover:not(:disabled) { background: color-mix(in oklab, canvasText 8%, transparent); }
-      .chip:disabled { opacity: 0.4; cursor: not-allowed; }
+      .chip:disabled { opacity: 0.38; cursor: not-allowed; }
 
       /* Sync banner */
       #syncBanner {
-        display: none;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 14px;
-        background: color-mix(in oklab, orange 20%, canvas);
-        border-radius: 10px;
-        border: 1px solid color-mix(in oklab, orange 40%, transparent);
-        font-size: 0.92rem;
+        display: none; align-items: center; gap: 10px;
+        padding: 10px 14px; border-radius: 10px;
+        background: color-mix(in oklab, orange 18%, canvas);
+        border: 1px solid color-mix(in oklab, orange 35%, transparent);
+        font-size: 0.9rem;
       }
       #syncBanner.visible { display: flex; }
       #syncBanner span { flex: 1; }
-      #syncBanner button {
-        padding: 6px 14px;
-        border-radius: 10px;
-        font-size: 0.88rem;
-        background: color-mix(in oklab, orange 30%, canvas);
-        border-color: color-mix(in oklab, orange 50%, transparent);
-      }
 
-      /* Capture popover */
+      /* Onboarding */
+      #onboarding {
+        display: flex; flex-direction: column; gap: 10px; align-items: center;
+        padding: 32px 20px; text-align: center;
+      }
+      #onboarding h2 { margin: 0 0 4px; font-size: 1.1rem; }
+      #onboarding p { margin: 0; opacity: 0.7; font-size: 0.9rem; }
+      .onboard-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+
+      /* Native grid */
+      #gridWrap {
+        overflow: auto; max-height: 480px; border-radius: 10px;
+        border: 1px solid color-mix(in oklab, canvasText 12%, transparent);
+      }
+      #gridWrap.hidden { display: none; }
+      #grid { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+      #grid th {
+        position: sticky; top: 0; z-index: 2;
+        background: color-mix(in oklab, canvasText 8%, canvas);
+        padding: 5px 8px; text-align: center; font-weight: 600;
+        border: 1px solid color-mix(in oklab, canvasText 12%, transparent);
+        user-select: none; min-width: 80px;
+      }
+      #grid .row-num {
+        position: sticky; left: 0; z-index: 1;
+        background: color-mix(in oklab, canvasText 6%, canvas);
+        padding: 4px 8px; text-align: center; font-size: 0.8rem; opacity: 0.7;
+        border: 1px solid color-mix(in oklab, canvasText 10%, transparent);
+        user-select: none; min-width: 36px;
+      }
+      #grid td[contenteditable] {
+        padding: 4px 8px; border: 1px solid color-mix(in oklab, canvasText 10%, transparent);
+        outline: none; min-width: 80px; max-width: 220px;
+        white-space: nowrap; overflow: hidden;
+      }
+      #grid td[contenteditable]:focus {
+        background: color-mix(in oklab, dodgerblue 12%, canvas);
+        border-color: dodgerblue; box-shadow: inset 0 0 0 1px dodgerblue;
+        white-space: normal; overflow: visible;
+      }
+      #grid tr:hover td { background: color-mix(in oklab, canvasText 3%, canvas); }
+      #grid tr:hover td:focus { background: color-mix(in oklab, dodgerblue 12%, canvas); }
+
+      /* Grid toolbar */
+      .grid-toolbar {
+        display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+        padding: 8px 0 4px;
+      }
+      #cellRef {
+        width: 64px; text-align: center; font-size: 0.85rem;
+        padding: 5px 8px; border-radius: 8px; background: canvas;
+        border: 1px solid color-mix(in oklab, canvasText 18%, transparent);
+        color: canvasText;
+      }
+      #formulaBar {
+        flex: 1; min-width: 120px; font-size: 0.88rem;
+        padding: 5px 10px; border-radius: 8px;
+      }
+      .toolbar-sep { width: 1px; height: 22px; background: color-mix(in oklab, canvasText 15%, transparent); }
+
+      /* Empty/error state */
+      #emptyState {
+        padding: 40px 20px; text-align: center; opacity: 0.55; font-size: 0.95rem;
+      }
+      #emptyState.hidden { display: none; }
+
+      /* Chat bar */
+      .chat-bar {
+        position: sticky; bottom: 0; padding: 10px 14px;
+        background: canvas;
+        border-top: 1px solid color-mix(in oklab, canvasText 10%, transparent);
+        border-radius: 0 0 14px 14px;
+        display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+      }
+      .chat-bar input { flex: 1; min-width: 160px; }
+
+      /* Popover */
       .popover-wrap { position: relative; display: inline-block; }
       .popover {
-        display: none;
-        position: absolute;
-        bottom: calc(100% + 8px);
-        left: 0;
-        background: canvas;
-        border: 1px solid color-mix(in oklab, canvasText 20%, transparent);
-        border-radius: 12px;
-        padding: 12px;
-        z-index: 10;
-        gap: 8px;
+        display: none; position: absolute; bottom: calc(100% + 8px); left: 0;
+        background: canvas; border: 1px solid color-mix(in oklab, canvasText 18%, transparent);
+        border-radius: 12px; padding: 10px; z-index: 20;
+        box-shadow: 0 4px 20px color-mix(in oklab, canvasText 18%, transparent);
         white-space: nowrap;
-        box-shadow: 0 4px 16px color-mix(in oklab, canvasText 15%, transparent);
       }
-      .popover.visible { display: flex; align-items: center; gap: 8px; }
-      .popover input { min-width: 120px; padding: 6px 10px; font-size: 0.9rem; }
-      .popover button { padding: 6px 10px; font-size: 0.9rem; }
+      .popover.visible { display: flex; gap: 8px; align-items: center; }
+      .popover input { min-width: 110px; padding: 6px 10px; font-size: 0.88rem; }
+      .popover button { padding: 6px 10px; font-size: 0.88rem; }
 
-      /* Sticky chat bar */
-      .chat-bar {
-        position: sticky;
-        bottom: 0;
-        padding: 12px;
-        background: canvas;
-        border-top: 1px solid color-mix(in oklab, canvasText 12%, transparent);
-        border-radius: 0 0 14px 14px;
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        flex-wrap: wrap;
-      }
-      .chat-bar input {
-        flex: 1;
-        min-width: 180px;
-        padding: 10px 12px;
-      }
-      .chat-bar .popover-wrap { flex-shrink: 0; }
+      /* Import/export row */
+      .io-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     </style>
   </head>
   <body>
@@ -205,50 +187,65 @@
 
       <!-- Sync banner -->
       <div id="syncBanner">
-        <span>Edits may have happened — Sync to update context</span>
-        <button id="syncBannerBtn">Sync</button>
+        <span>Sheet may have been edited — Sync to refresh</span>
+        <button id="syncBannerBtn" style="padding:5px 12px; font-size:0.88rem;">Sync</button>
       </div>
 
-      <!-- Header card -->
+      <!-- Header -->
       <div class="card">
-        <div class="row" style="justify-content: space-between;">
+        <div class="row" style="justify-content:space-between;">
           <div>
-            <strong>EtherCalc Spreadsheet Assistant</strong>
-            <div class="muted">Use chat or the controls below to open a sheet and refresh the preview.</div>
+            <strong>Spreadsheet Assistant</strong>
+            <div class="muted">Chat with your spreadsheet · edit cells directly · ask ChatGPT anything</div>
           </div>
           <span id="status" class="pill">Idle</span>
         </div>
       </div>
 
-      <!-- Controls card -->
+      <!-- Controls -->
       <div class="card">
         <div class="row">
-          <input id="sheetIdInput" placeholder="Sheet ID, e.g. budget-2026" />
+          <input id="sheetIdInput" class="short" placeholder="Sheet ID, e.g. budget-2026" />
           <button id="openButton">Open</button>
           <button id="sampleButton">Create sample</button>
-          <button id="refreshButton">Refresh snapshot</button>
-          <button id="syncNowButton">Sync</button>
+          <button id="syncNowButton" disabled>Sync</button>
+          <a id="externalLink" href="#" target="_blank" rel="noopener"
+             style="display:none; padding:8px 12px; border-radius:10px;
+                    border:1px solid color-mix(in oklab,canvasText 18%,transparent);
+                    text-decoration:none; color:canvasText; font-size:0.88rem;">
+            Open in EtherCalc ↗
+          </a>
         </div>
-        <div class="muted" style="margin-top: 8px;">EtherCalc base URL: <code>__ETHERCALC_BASE_URL__</code></div>
+        <!-- Import/export row -->
+        <div class="io-row" style="margin-top:10px;">
+          <label style="font-size:0.88rem; opacity:0.75;">Import CSV:</label>
+          <input type="file" id="importFile" accept=".csv" style="font-size:0.82rem;" />
+          <button id="importBtn" disabled>Upload</button>
+          <button id="exportBtn" disabled>Export CSV</button>
+        </div>
       </div>
 
       <!-- Tab bar -->
-      <div class="card" style="padding: 10px 14px;">
+      <div class="card" style="padding:10px 14px;">
         <div id="tabBar" class="tab-bar">
-          <button class="tab-add" id="addTabBtn" title="Open new sheet">＋</button>
+          <button class="tab-add" id="addTabBtn">＋</button>
         </div>
-        <div id="newTabRow" class="tab-new-input" style="display:none; margin-top: 8px;">
-          <input id="newTabInput" placeholder="Sheet ID…" />
+        <div id="newTabRow" style="display:none; margin-top:8px;" class="row">
+          <input id="newTabInput" class="short" placeholder="Sheet ID…" />
           <button id="newTabConfirm">Open</button>
           <button id="newTabCancel">Cancel</button>
         </div>
       </div>
 
-      <!-- Sheet info card -->
+      <!-- Active sheet info -->
       <div class="card">
-        <div><strong>Active sheet:</strong> <span id="sheetLabel">None</span></div>
-        <div class="muted" id="actionLabel">No actions yet.</div>
-        <div id="errorLabel" class="muted" style="color: tomato; display: none; margin-top: 4px;"></div>
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <strong>Active sheet:</strong> <span id="sheetLabel">None</span>
+          </div>
+          <span id="actionLabel" class="muted"></span>
+        </div>
+        <div id="errorLabel" style="color:tomato; font-size:0.88rem; margin-top:6px; display:none;"></div>
       </div>
 
       <!-- Intent chips -->
@@ -258,23 +255,43 @@
           <button class="chip" data-chip="add5rows" disabled>Add 5 rows</button>
           <button class="chip" data-chip="sortaz" disabled>Sort A→Z</button>
           <button class="chip" data-chip="outliers" disabled>Find outliers</button>
-          <button class="chip" data-chip="exportcsv" disabled>Export CSV</button>
           <button class="chip" data-chip="clearall" disabled>Clear all</button>
         </div>
       </div>
 
-      <!-- iframe card -->
-      <div class="card" style="padding: 0; overflow: hidden;">
-        <iframe id="sheetFrame" title="EtherCalc sheet"></iframe>
+      <!-- Native editable grid -->
+      <div class="card" style="padding:10px 14px;">
+
+        <!-- Onboarding (shown when no sheet loaded) -->
+        <div id="onboarding">
+          <h2>No sheet open yet</h2>
+          <p>Create a new sheet or open an existing one to start editing.</p>
+          <div class="onboard-actions">
+            <button id="onboardSample">Create sample sheet</button>
+            <button id="onboardOpen">Open existing sheet</button>
+            <label style="padding:7px 14px; border-radius:10px; border:1px solid color-mix(in oklab,canvasText 18%,transparent); cursor:pointer; font-size:0.88rem; background:canvas; color:canvasText;">
+              Import CSV <input type="file" id="onboardImport" accept=".csv" style="display:none;" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Grid area (hidden until sheet loaded) -->
+        <div id="gridArea" style="display:none;">
+          <div class="grid-toolbar">
+            <input id="cellRef" readonly placeholder="A1" title="Selected cell" />
+            <div class="toolbar-sep"></div>
+            <input id="formulaBar" placeholder="Cell value / formula…" title="Edit active cell value" />
+            <button id="formulaApply" style="padding:5px 10px; font-size:0.88rem;">Apply</button>
+          </div>
+          <div id="gridWrap">
+            <div id="emptyState">Open a sheet to start editing cells.</div>
+            <table id="grid"></table>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Preview card -->
-      <div class="card">
-        <strong>Preview</strong>
-        <textarea id="preview" readonly></textarea>
-      </div>
-
-      <!-- Chat bar (sticky bottom) -->
+      <!-- Chat bar -->
       <div class="card chat-bar">
         <input id="askInput" placeholder="Ask about your spreadsheet…" />
         <div class="popover-wrap" id="captureWrap">
@@ -291,95 +308,274 @@
     </div>
 
     <script type="module">
+      // ── State ───────────────────────────────────────────────────────────
       const state = {
         sheetId: null,
-        ethercalcUrl: null,
-        preview: [],
-        csvText: null,
-        sheets: [],       // open sheet IDs
+        sheets: [],       // open sheet IDs (recent history)
         activeSheetId: null,
+        grid: [],         // 2D array of current sheet data
+        activeCell: null, // { r, c }
+        ethercalcBaseUrl: "__ETHERCALC_BASE_URL__",
       };
 
-      // Elements
-      const statusEl = document.getElementById("status");
-      const sheetLabelEl = document.getElementById("sheetLabel");
-      const actionLabelEl = document.getElementById("actionLabel");
-      const errorLabelEl = document.getElementById("errorLabel");
-      const frameEl = document.getElementById("sheetFrame");
-      const previewEl = document.getElementById("preview");
-      const sheetIdInputEl = document.getElementById("sheetIdInput");
-      const tabBarEl = document.getElementById("tabBar");
-      const addTabBtnEl = document.getElementById("addTabBtn");
-      const newTabRowEl = document.getElementById("newTabRow");
-      const newTabInputEl = document.getElementById("newTabInput");
-      const syncBannerEl = document.getElementById("syncBanner");
-      const chipsRowEl = document.getElementById("chipsRow");
-      const askInputEl = document.getElementById("askInput");
-      const askSendBtnEl = document.getElementById("askSendBtn");
-      const captureBtnEl = document.getElementById("captureBtn");
-      const captureWrapEl = document.getElementById("captureWrap");
-      const capturePopoverEl = document.getElementById("capturePopover");
+      // ── Element refs ────────────────────────────────────────────────────
+      const $ = (id) => document.getElementById(id);
+      const statusEl = $("status");
+      const sheetLabelEl = $("sheetLabel");
+      const actionLabelEl = $("actionLabel");
+      const errorLabelEl = $("errorLabel");
+      const sheetIdInputEl = $("sheetIdInput");
+      const tabBarEl = $("tabBar");
+      const addTabBtnEl = $("addTabBtn");
+      const newTabRowEl = $("newTabRow");
+      const newTabInputEl = $("newTabInput");
+      const syncBannerEl = $("syncBanner");
+      const chipsRowEl = $("chipsRow");
+      const askInputEl = $("askInput");
+      const askSendBtnEl = $("askSendBtn");
+      const captureBtnEl = $("captureBtn");
+      const capturePopoverEl = $("capturePopover");
+      const captureWrapEl = $("captureWrap");
+      const gridEl = $("grid");
+      const gridWrapEl = $("gridWrap");
+      const emptyStateEl = $("emptyState");
+      const onboardingEl = $("onboarding");
+      const gridAreaEl = $("gridArea");
+      const cellRefEl = $("cellRef");
+      const formulaBarEl = $("formulaBar");
+      const externalLinkEl = $("externalLink");
+      const importBtnEl = $("importBtn");
+      const exportBtnEl = $("exportBtn");
 
-      // ── Sync banner timer ──────────────────────────────────────────────
+      // ── Sync banner ─────────────────────────────────────────────────────
       let syncTimer = null;
-
       function resetSyncTimer() {
         syncBannerEl.classList.remove("visible");
-        if (syncTimer) clearTimeout(syncTimer);
+        clearTimeout(syncTimer);
         if (state.sheetId) {
-          syncTimer = setTimeout(() => {
-            syncBannerEl.classList.add("visible");
-          }, 30000);
+          syncTimer = setTimeout(() => syncBannerEl.classList.add("visible"), 30000);
         }
       }
 
-      // ── Status / error helpers ─────────────────────────────────────────
-      function setStatus(text) {
-        statusEl.textContent = text;
-      }
+      // ── Helpers ─────────────────────────────────────────────────────────
+      function setStatus(text) { statusEl.textContent = text; }
 
       function showError(msg) {
-        if (msg) {
-          errorLabelEl.textContent = msg;
-          errorLabelEl.style.display = "block";
-        } else {
-          errorLabelEl.style.display = "none";
+        if (msg) { errorLabelEl.textContent = msg; errorLabelEl.style.display = "block"; }
+        else { errorLabelEl.style.display = "none"; }
+      }
+
+      function colLabel(idx) {
+        let n = idx + 1, out = "";
+        while (n > 0) { const r = (n - 1) % 26; out = String.fromCharCode(65 + r) + out; n = Math.floor((n - 1) / 26); }
+        return out;
+      }
+
+      function updateChips() {
+        const on = Boolean(state.sheetId);
+        chipsRowEl.querySelectorAll(".chip").forEach((b) => { b.disabled = !on; });
+        askSendBtnEl.disabled = !on;
+        captureBtnEl.disabled = !on;
+        $("syncNowButton").disabled = !on;
+        importBtnEl.disabled = !on;
+        exportBtnEl.disabled = !on;
+      }
+
+      // ── Preview data → 2D array ─────────────────────────────────────────
+      // preview is array of {A:"v", B:"v", ...} objects from tablePreview()
+      function previewTo2D(preview) {
+        if (!preview?.length) return [];
+        const cols = Object.keys(preview[0]);
+        return preview.map((row) => cols.map((c) => row[c] ?? ""));
+      }
+
+      // ── Grid rendering ──────────────────────────────────────────────────
+      function renderGrid(data2d) {
+        state.grid = data2d;
+        gridEl.innerHTML = "";
+
+        if (!data2d.length) {
+          emptyStateEl.classList.remove("hidden");
+          return;
+        }
+        emptyStateEl.classList.add("hidden");
+
+        const maxCols = Math.max(...data2d.map((r) => r.length), 1);
+
+        // Header row: corner + column letters
+        const thead = gridEl.createTHead();
+        const headerRow = thead.insertRow();
+        const corner = document.createElement("th");
+        corner.className = "row-num";
+        corner.textContent = "#";
+        headerRow.appendChild(corner);
+        for (let c = 0; c < maxCols; c++) {
+          const th = document.createElement("th");
+          th.textContent = colLabel(c);
+          headerRow.appendChild(th);
+        }
+
+        // Data rows
+        const tbody = gridEl.createTBody();
+        data2d.forEach((row, r) => {
+          const tr = tbody.insertRow();
+          const rowNum = document.createElement("td");
+          rowNum.className = "row-num";
+          rowNum.textContent = r + 1;
+          tr.appendChild(rowNum);
+
+          for (let c = 0; c < maxCols; c++) {
+            const td = tr.insertCell();
+            td.contentEditable = "true";
+            td.dataset.r = r;
+            td.dataset.c = c;
+            td.dataset.orig = row[c] ?? "";
+            td.textContent = row[c] ?? "";
+            td.addEventListener("focus", onCellFocus);
+            td.addEventListener("blur", onCellBlur);
+            td.addEventListener("keydown", onCellKey);
+          }
+        });
+      }
+
+      function onCellFocus(e) {
+        const td = e.target;
+        const r = Number(td.dataset.r);
+        const c = Number(td.dataset.c);
+        state.activeCell = { r, c };
+        cellRefEl.value = `${colLabel(c)}${r + 1}`;
+        formulaBarEl.value = td.textContent;
+      }
+
+      async function onCellBlur(e) {
+        const td = e.target;
+        const newVal = td.textContent;
+        if (newVal === td.dataset.orig) return;
+        td.dataset.orig = newVal;
+        const r = Number(td.dataset.r);
+        const c = Number(td.dataset.c);
+        if (!state.sheetId) return;
+        if (!state.grid[r]) state.grid[r] = [];
+        state.grid[r][c] = newVal;
+        const cell = `${colLabel(c)}${r + 1}`;
+        try {
+          await callTool("set_range_values", { sheetId: state.sheetId, startCell: cell, values: [[newVal]] });
+        } catch { /* error already shown by callTool */ }
+      }
+
+      function onCellKey(e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          const r = Number(e.target.dataset.r);
+          const c = Number(e.target.dataset.c);
+          const next = gridEl.querySelector(`[data-r="${r + 1}"][data-c="${c}"]`);
+          if (next) next.focus(); else e.target.blur();
+        } else if (e.key === "Tab") {
+          e.preventDefault();
+          const r = Number(e.target.dataset.r);
+          const c = Number(e.target.dataset.c);
+          const next = gridEl.querySelector(`[data-r="${r}"][data-c="${c + 1}"]`)
+                    || gridEl.querySelector(`[data-r="${r + 1}"][data-c="0"]`);
+          if (next) next.focus(); else e.target.blur();
+        } else if (e.key === "Escape") {
+          e.target.textContent = e.target.dataset.orig;
+          e.target.blur();
         }
       }
 
-      // ── Chips state ────────────────────────────────────────────────────
-      function updateChips() {
-        const enabled = Boolean(state.sheetId);
-        chipsRowEl.querySelectorAll(".chip").forEach((btn) => {
-          btn.disabled = !enabled;
-        });
-        askSendBtnEl.disabled = !enabled;
-        captureBtnEl.disabled = !enabled;
+      // Formula bar apply
+      $("formulaApply").addEventListener("click", async () => {
+        if (!state.activeCell || !state.sheetId) return;
+        const { r, c } = state.activeCell;
+        const val = formulaBarEl.value;
+        const td = gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+        if (td) { td.textContent = val; td.dataset.orig = val; }
+        const cell = `${colLabel(c)}${r + 1}`;
+        if (val.startsWith("=")) {
+          await callTool("apply_formula", { sheetId: state.sheetId, cell, formula: val });
+        } else {
+          await callTool("set_range_values", { sheetId: state.sheetId, startCell: cell, values: [[val]] });
+        }
+      });
+
+      // ── Apply tool result ───────────────────────────────────────────────
+      function applyResult(toolResult) {
+        const data = toolResult?.structuredContent ?? {};
+        const meta = toolResult?._meta ?? {};
+
+        const newSheetId = data.sheetId ?? meta.sheetId ?? state.sheetId;
+        if (newSheetId) {
+          state.sheetId = newSheetId;
+          pushSheet(newSheetId);
+          sheetLabelEl.textContent = newSheetId;
+          sheetIdInputEl.value = newSheetId;
+          // Update external link
+          externalLinkEl.href = `${state.ethercalcBaseUrl}/${encodeURIComponent(newSheetId)}`;
+          externalLinkEl.style.display = "inline-block";
+          // Show grid area, hide onboarding
+          onboardingEl.style.display = "none";
+          gridAreaEl.style.display = "block";
+        }
+
+        if (meta.action) actionLabelEl.textContent = `Last: ${meta.action}`;
+        showError(null);
+
+        // Render grid from preview or range data
+        const raw = data.data ?? data.preview; // data = 2D from getRangeSnapshot, preview = [{A,B,...}] from others
+        if (raw?.length) {
+          const grid2d = Array.isArray(raw[0]) ? raw : previewTo2D(raw);
+          renderGrid(grid2d);
+        }
+
+        setStatus("Ready");
+        resetSyncTimer();
+        updateChips();
       }
 
-      // ── Tab bar ────────────────────────────────────────────────────────
-      function renderTabs() {
-        // Remove existing tabs (keep add button)
-        tabBarEl.querySelectorAll(".tab").forEach((t) => t.remove());
+      // ── postMessage listener ────────────────────────────────────────────
+      window.addEventListener("message", (event) => {
+        if (event.source !== window.parent) return;
+        const msg = event.data;
+        if (!msg || msg.jsonrpc !== "2.0") return;
+        if (msg.method === "ui/notifications/tool-result") applyResult(msg.params);
+      }, { passive: true });
 
+      // ── callTool ────────────────────────────────────────────────────────
+      async function callTool(name, args) {
+        setStatus(`Running ${name}…`);
+        showError(null);
+        const id = Math.random().toString(36).slice(2);
+        return new Promise((resolve, reject) => {
+          const handler = (event) => {
+            if (event.source !== window.parent) return;
+            const msg = event.data;
+            if (!msg || msg.jsonrpc !== "2.0" || msg.id !== id) return;
+            window.removeEventListener("message", handler);
+            if (msg.error) {
+              const err = msg.error.message || "Tool call failed";
+              setStatus("Error"); showError(err);
+              reject(new Error(err)); return;
+            }
+            applyResult(msg.result);
+            resolve(msg.result);
+          };
+          window.addEventListener("message", handler);
+          window.parent.postMessage({ jsonrpc: "2.0", id, method: "tools/call", params: { name, arguments: args } }, "*");
+        });
+      }
+
+      // ── Tab bar ─────────────────────────────────────────────────────────
+      function renderTabs() {
+        tabBarEl.querySelectorAll(".tab").forEach((t) => t.remove());
         state.sheets.forEach((id) => {
           const tab = document.createElement("button");
           tab.className = `tab${id === state.activeSheetId ? " active" : ""}`;
-          tab.dataset.sheetId = id;
-
-          const label = document.createElement("span");
-          label.textContent = id;
-
-          const closeBtn = document.createElement("button");
-          closeBtn.className = "tab-close";
-          closeBtn.title = `Close ${id}`;
-          closeBtn.textContent = "✕";
-          closeBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            closeTab(id);
-          });
-
-          tab.append(label, closeBtn);
+          const lbl = document.createElement("span");
+          lbl.textContent = id;
+          const x = document.createElement("button");
+          x.className = "tab-close"; x.textContent = "✕"; x.title = `Close ${id}`;
+          x.addEventListener("click", (e) => { e.stopPropagation(); closeTab(id); });
+          tab.append(lbl, x);
           tab.addEventListener("click", () => switchTab(id));
           tabBarEl.insertBefore(tab, addTabBtnEl);
         });
@@ -391,167 +587,136 @@
         renderTabs();
       }
 
-      function switchTab(id) {
-        state.sheetId = id;
-        state.activeSheetId = id;
-        sheetIdInputEl.value = id;
-        sheetLabelEl.textContent = id;
-        frameEl.src = `__ETHERCALC_BASE_URL__/${encodeURIComponent(id)}`;
-        renderTabs();
-        resetSyncTimer();
-        updateChips();
+      async function switchTab(id) {
+        state.sheetId = id; state.activeSheetId = id;
+        sheetIdInputEl.value = id; sheetLabelEl.textContent = id;
+        externalLinkEl.href = `${state.ethercalcBaseUrl}/${encodeURIComponent(id)}`;
+        renderTabs(); resetSyncTimer(); updateChips();
+        await callTool("get_sheet_snapshot", { sheetId: id, maxRows: 50 });
       }
 
       function closeTab(id) {
         state.sheets = state.sheets.filter((s) => s !== id);
         if (state.activeSheetId === id) {
-          const next = state.sheets[state.sheets.length - 1] ?? null;
-          if (next) {
-            switchTab(next);
-          } else {
-            state.sheetId = null;
-            state.activeSheetId = null;
-            sheetLabelEl.textContent = "None";
-            frameEl.src = "";
-            updateChips();
-          }
+          const next = state.sheets.at(-1) ?? null;
+          if (next) { switchTab(next); return; }
+          state.sheetId = null; state.activeSheetId = null;
+          sheetLabelEl.textContent = "None";
+          onboardingEl.style.display = "flex";
+          gridAreaEl.style.display = "none";
+          externalLinkEl.style.display = "none";
+          updateChips();
         }
         renderTabs();
       }
 
-      // ── Apply tool result ──────────────────────────────────────────────
-      function applyResult(toolResult) {
-        const data = toolResult?.structuredContent ?? {};
-        const meta = toolResult?._meta ?? {};
-        state.sheetId = data.sheetId ?? meta.sheetId ?? state.sheetId;
-        state.ethercalcUrl = meta.ethercalcUrl ?? state.ethercalcUrl;
-        state.preview = data.preview ?? data.sample ?? state.preview;
-        state.csvText = data.csv ?? state.csvText;
-
-        sheetLabelEl.textContent = state.sheetId ?? "None";
-        actionLabelEl.textContent = meta.action ? `Last action: ${meta.action}` : "No actions yet.";
-        showError(null);
-
-        if (state.sheetId) {
-          sheetIdInputEl.value = state.sheetId;
-          pushSheet(state.sheetId);
-        }
-        if (state.ethercalcUrl) frameEl.src = state.ethercalcUrl;
-        previewEl.value = JSON.stringify(state.preview, null, 2);
-        setStatus("Ready");
-        resetSyncTimer();
-        updateChips();
-      }
-
-      // ── postMessage listener ───────────────────────────────────────────
-      window.addEventListener("message", (event) => {
-        if (event.source !== window.parent) return;
-        const message = event.data;
-        if (!message || message.jsonrpc !== "2.0") return;
-        if (message.method !== "ui/notifications/tool-result") return;
-        applyResult(message.params);
-      }, { passive: true });
-
-      // ── callTool ───────────────────────────────────────────────────────
-      async function callTool(name, args) {
-        setStatus(`Running ${name}…`);
-        showError(null);
-        const id = Math.random().toString(36).slice(2);
-        return new Promise((resolve, reject) => {
-          const onMessage = (event) => {
-            if (event.source !== window.parent) return;
-            const message = event.data;
-            if (!message || message.jsonrpc !== "2.0" || message.id !== id) return;
-            window.removeEventListener("message", onMessage);
-            if (message.error) {
-              const errMsg = message.error.message || "Tool call failed";
-              setStatus("Error");
-              showError(errMsg);
-              reject(new Error(errMsg));
-              return;
-            }
-            applyResult(message.result);
-            resolve(message.result);
-          };
-          window.addEventListener("message", onMessage);
-          window.parent.postMessage({
-            jsonrpc: "2.0",
-            id,
-            method: "tools/call",
-            params: { name, arguments: args },
-          }, "*");
+      // ── CSV import/export ────────────────────────────────────────────────
+      function parseCsvText(text) {
+        return text.trim().split("\n").map((line) => {
+          const cells = []; let f = "", inQ = false;
+          for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (inQ) { if (ch === '"' && line[i+1] === '"') { f += '"'; i++; } else if (ch === '"') inQ = false; else f += ch; }
+            else if (ch === '"') inQ = true;
+            else if (ch === ',') { cells.push(f); f = ""; }
+            else f += ch;
+          }
+          cells.push(f); return cells;
         });
       }
 
-      // ── Button handlers ────────────────────────────────────────────────
-      document.getElementById("openButton").addEventListener("click", async () => {
-        const sheetId = sheetIdInputEl.value.trim();
-        if (!sheetId) return;
-        await callTool("open_sheet", { sheetId, maxRows: 20 });
+      function gridToCsv() {
+        return state.grid.map((row) =>
+          row.map((v) => { const s = String(v ?? ""); return /[,"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }).join(",")
+        ).join("\n");
+      }
+
+      async function importCsvData(text) {
+        const rows = parseCsvText(text);
+        if (!rows.length) return;
+        const sheetId = sheetIdInputEl.value.trim() || `import-${Date.now()}`;
+        await callTool("create_sheet", { sheetId, headers: rows[0], rows: rows.slice(1) });
+      }
+
+      function handleImportFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => importCsvData(e.target.result);
+        reader.readAsText(file);
+      }
+
+      $("importFile").addEventListener("change", (e) => {
+        if ($("importFile").files[0]) importBtnEl.disabled = false;
+      });
+      importBtnEl.addEventListener("click", () => handleImportFile($("importFile").files[0]));
+
+      exportBtnEl.addEventListener("click", () => {
+        if (!state.grid.length) return;
+        const csv = gridToCsv();
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+        a.download = `${state.sheetId ?? "sheet"}.csv`;
+        a.click();
+      });
+
+      // ── Button handlers ─────────────────────────────────────────────────
+      $("openButton").addEventListener("click", () => {
+        const id = sheetIdInputEl.value.trim(); if (!id) return;
+        callTool("open_sheet", { sheetId: id, maxRows: 50 });
       });
 
       sheetIdInputEl.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          const sheetId = sheetIdInputEl.value.trim();
-          if (sheetId) callTool("open_sheet", { sheetId, maxRows: 20 });
-        }
+        if (e.key === "Enter") $("openButton").click();
       });
 
-      document.getElementById("refreshButton").addEventListener("click", async () => {
-        if (!state.sheetId) return;
-        await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 20 });
-      });
-
-      document.getElementById("sampleButton").addEventListener("click", async () => {
-        const sheetId = sheetIdInputEl.value.trim() || `sample-${Date.now()}`;
-        await callTool("create_sheet", {
-          sheetId,
-          headers: ["Task", "Owner", "Status"],
+      $("sampleButton").addEventListener("click", () => {
+        const id = sheetIdInputEl.value.trim() || `sample-${Date.now()}`;
+        callTool("create_sheet", {
+          sheetId: id,
+          headers: ["Task", "Owner", "Status", "Due"],
           rows: [
-            ["Ship demo", "Ava", "In progress"],
-            ["Review PRD", "Noah", "Done"],
-            ["Test EtherCalc", "Mia", "Todo"]
+            ["Ship demo", "Ava", "In progress", "2026-03-15"],
+            ["Review PRD", "Noah", "Done", "2026-03-10"],
+            ["Write tests", "Mia", "Todo", "2026-03-20"],
+            ["Deploy to staging", "Leo", "Todo", "2026-03-22"],
           ]
         });
       });
 
-      document.getElementById("syncNowButton").addEventListener("click", async () => {
+      $("syncNowButton").addEventListener("click", () => {
         if (!state.sheetId) return;
-        await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 20 });
+        callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 50 });
       });
 
-      document.getElementById("syncBannerBtn").addEventListener("click", async () => {
-        if (!state.sheetId) return;
+      $("syncBannerBtn").addEventListener("click", () => {
         syncBannerEl.classList.remove("visible");
-        await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 20 });
+        if (state.sheetId) callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 50 });
       });
 
-      // ── New tab flow ───────────────────────────────────────────────────
+      // Onboarding buttons
+      $("onboardSample").addEventListener("click", () => $("sampleButton").click());
+      $("onboardOpen").addEventListener("click", () => { sheetIdInputEl.focus(); });
+      $("onboardImport").addEventListener("change", (e) => handleImportFile(e.target.files[0]));
+
+      // Add tab
       addTabBtnEl.addEventListener("click", () => {
-        newTabRowEl.style.display = "flex";
-        newTabInputEl.focus();
+        newTabRowEl.style.display = "flex"; newTabInputEl.focus();
       });
-
-      document.getElementById("newTabConfirm").addEventListener("click", async () => {
-        const id = newTabInputEl.value.trim();
-        if (!id) return;
-        newTabRowEl.style.display = "none";
-        newTabInputEl.value = "";
+      $("newTabConfirm").addEventListener("click", async () => {
+        const id = newTabInputEl.value.trim(); if (!id) return;
+        newTabRowEl.style.display = "none"; newTabInputEl.value = "";
         sheetIdInputEl.value = id;
-        await callTool("open_sheet", { sheetId: id, maxRows: 20 });
+        await callTool("open_sheet", { sheetId: id, maxRows: 50 });
+      });
+      newTabInputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") $("newTabConfirm").click();
+        if (e.key === "Escape") $("newTabCancel").click();
+      });
+      $("newTabCancel").addEventListener("click", () => {
+        newTabRowEl.style.display = "none"; newTabInputEl.value = "";
       });
 
-      newTabInputEl.addEventListener("keydown", async (e) => {
-        if (e.key === "Enter") document.getElementById("newTabConfirm").click();
-        if (e.key === "Escape") document.getElementById("newTabCancel").click();
-      });
-
-      document.getElementById("newTabCancel").addEventListener("click", () => {
-        newTabRowEl.style.display = "none";
-        newTabInputEl.value = "";
-      });
-
-      // ── Intent chips ───────────────────────────────────────────────────
+      // ── Intent chips ────────────────────────────────────────────────────
       chipsRowEl.addEventListener("click", async (e) => {
         const chip = e.target.closest(".chip");
         if (!chip || chip.disabled || !state.sheetId) return;
@@ -561,35 +726,18 @@
           await callTool("summarize_sheet", { sheetId: state.sheetId });
 
         } else if (action === "add5rows") {
-          await callTool("append_rows", {
-            sheetId: state.sheetId,
-            rows: [["","",""],["","",""],["","",""],["","",""],["","",""]]
-          });
+          const cols = state.grid[0]?.length ?? 3;
+          const empty = Array.from({ length: 5 }, () => Array(cols).fill(""));
+          await callTool("append_rows", { sheetId: state.sheetId, rows: empty });
 
         } else if (action === "sortaz") {
           await callTool("sort_sheet", { sheetId: state.sheetId, column: 0, direction: "asc" });
 
         } else if (action === "outliers") {
-          const snapshot = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 100 });
-          window.parent.postMessage({
-            jsonrpc: "2.0",
-            method: "ui/actions/send-message",
-            params: {
-              text: `Analyze this sheet data for outliers and anomalies:\n${JSON.stringify(snapshot?.structuredContent)}`,
-            },
+          const snap = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 100 });
+          window.parent.postMessage({ jsonrpc: "2.0", method: "ui/actions/send-message",
+            params: { text: `Analyze this sheet for outliers and anomalies:\n${JSON.stringify(snap?.structuredContent)}` }
           }, "*");
-
-        } else if (action === "exportcsv") {
-          const snapshot = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 10000 });
-          const csv = snapshot?.structuredContent?.csv ?? snapshot?.structuredContent?.preview
-            ?.map((row) => Object.values(row).join(",")).join("\n") ?? "";
-          const blob = new Blob([csv], { type: "text/csv" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `${state.sheetId ?? "sheet"}.csv`;
-          a.click();
-          URL.revokeObjectURL(url);
 
         } else if (action === "clearall") {
           if (!confirm(`Clear all cells in "${state.sheetId}"? This cannot be undone.`)) return;
@@ -597,69 +745,48 @@
         }
       });
 
-      // ── Chat bar ───────────────────────────────────────────────────────
+      // ── Chat bar ────────────────────────────────────────────────────────
       askSendBtnEl.addEventListener("click", async () => {
         const text = askInputEl.value.trim();
         if (!text || !state.sheetId) return;
-        const snapshot = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 50 });
-        window.parent.postMessage({
-          jsonrpc: "2.0",
-          method: "ui/actions/send-message",
-          params: {
-            text: `${text}\n\nCurrent sheet:\n${JSON.stringify(snapshot?.structuredContent)}`,
-          },
+        const snap = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 50 });
+        window.parent.postMessage({ jsonrpc: "2.0", method: "ui/actions/send-message",
+          params: { text: `${text}\n\nCurrent sheet (${state.sheetId}):\n${JSON.stringify(snap?.structuredContent)}` }
         }, "*");
         askInputEl.value = "";
       });
+      askInputEl.addEventListener("keydown", (e) => { if (e.key === "Enter") askSendBtnEl.click(); });
 
-      askInputEl.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") askSendBtnEl.click();
-      });
-
-      // ── Capture range popover ──────────────────────────────────────────
+      // ── Capture range ────────────────────────────────────────────────────
       captureBtnEl.addEventListener("click", (e) => {
         e.stopPropagation();
         capturePopoverEl.classList.toggle("visible");
       });
-
       document.addEventListener("click", (e) => {
-        if (!captureWrapEl.contains(e.target)) {
-          capturePopoverEl.classList.remove("visible");
-        }
+        if (!captureWrapEl.contains(e.target)) capturePopoverEl.classList.remove("visible");
       });
-
-      document.getElementById("rangeCancel").addEventListener("click", () => {
+      $("rangeCancel").addEventListener("click", () => {
         capturePopoverEl.classList.remove("visible");
-        document.getElementById("rangeInput").value = "";
+        $("rangeInput").value = "";
       });
-
-      document.getElementById("rangeConfirm").addEventListener("click", async () => {
-        const range = document.getElementById("rangeInput").value.trim();
+      $("rangeConfirm").addEventListener("click", async () => {
+        const range = $("rangeInput").value.trim();
         if (!range || !state.sheetId) return;
         capturePopoverEl.classList.remove("visible");
-        document.getElementById("rangeInput").value = "";
-
-        let snapshot;
-        try {
-          snapshot = await callTool("get_range_snapshot", { sheetId: state.sheetId, range });
-        } catch {
-          // fall back to full snapshot
-          snapshot = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 20 });
-        }
-
-        previewEl.value = JSON.stringify(snapshot?.structuredContent?.preview ?? state.preview, null, 2);
+        $("rangeInput").value = "";
+        let snap;
+        try { snap = await callTool("get_range_snapshot", { sheetId: state.sheetId, range }); }
+        catch { snap = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 20 }); }
         askInputEl.value = `I selected range ${range} — what can you tell me about this data?`;
         askInputEl.focus();
       });
-
-      document.getElementById("rangeInput").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") document.getElementById("rangeConfirm").click();
-        if (e.key === "Escape") document.getElementById("rangeCancel").click();
+      $("rangeInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") $("rangeConfirm").click();
+        if (e.key === "Escape") $("rangeCancel").click();
       });
 
-      // ── Init ───────────────────────────────────────────────────────────
+      // ── Init ─────────────────────────────────────────────────────────────
       setStatus("Ready");
-      previewEl.value = "Open a sheet to load a preview.";
       updateChips();
     </script>
   </body>
