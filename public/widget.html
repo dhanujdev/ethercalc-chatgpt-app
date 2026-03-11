@@ -57,10 +57,159 @@
         padding: 4px 10px;
         background: color-mix(in oklab, canvasText 8%, transparent);
       }
+
+      /* Tab bar */
+      .tab-bar {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: thin;
+      }
+      .tab-bar::-webkit-scrollbar { height: 4px; }
+      .tab-bar::-webkit-scrollbar-thumb {
+        background: color-mix(in oklab, canvasText 20%, transparent);
+        border-radius: 4px;
+      }
+      .tab {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 10px;
+        border: 1px solid color-mix(in oklab, canvasText 15%, transparent);
+        background: color-mix(in oklab, canvasText 4%, transparent);
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 0.9rem;
+        transition: background 0.15s;
+      }
+      .tab:hover { background: color-mix(in oklab, canvasText 8%, transparent); }
+      .tab.active { background: color-mix(in oklab, canvasText 12%, transparent); font-weight: 600; }
+      .tab .tab-close {
+        padding: 0 2px;
+        border: none;
+        background: transparent;
+        color: canvasText;
+        cursor: pointer;
+        font-size: 0.85rem;
+        opacity: 0.6;
+        line-height: 1;
+        border-radius: 4px;
+      }
+      .tab .tab-close:hover { opacity: 1; background: color-mix(in oklab, canvasText 15%, transparent); }
+      .tab-add {
+        padding: 6px 14px;
+        border-radius: 10px;
+        border: 1px dashed color-mix(in oklab, canvasText 25%, transparent);
+        background: transparent;
+        color: canvasText;
+        cursor: pointer;
+        font-size: 1rem;
+        white-space: nowrap;
+        transition: background 0.15s;
+      }
+      .tab-add:hover { background: color-mix(in oklab, canvasText 6%, transparent); }
+      .tab-new-input {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .tab-new-input input { min-width: 140px; padding: 6px 10px; font-size: 0.9rem; }
+      .tab-new-input button { padding: 6px 10px; font-size: 0.9rem; }
+
+      /* Chips */
+      .chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .chip {
+        border-radius: 999px;
+        padding: 6px 14px;
+        border: 1px solid color-mix(in oklab, canvasText 20%, transparent);
+        background: canvas;
+        color: canvasText;
+        cursor: pointer;
+        font-size: 0.88rem;
+        transition: background 0.15s, opacity 0.15s;
+      }
+      .chip:hover:not(:disabled) { background: color-mix(in oklab, canvasText 8%, transparent); }
+      .chip:disabled { opacity: 0.4; cursor: not-allowed; }
+
+      /* Sync banner */
+      #syncBanner {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: color-mix(in oklab, orange 20%, canvas);
+        border-radius: 10px;
+        border: 1px solid color-mix(in oklab, orange 40%, transparent);
+        font-size: 0.92rem;
+      }
+      #syncBanner.visible { display: flex; }
+      #syncBanner span { flex: 1; }
+      #syncBanner button {
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-size: 0.88rem;
+        background: color-mix(in oklab, orange 30%, canvas);
+        border-color: color-mix(in oklab, orange 50%, transparent);
+      }
+
+      /* Capture popover */
+      .popover-wrap { position: relative; display: inline-block; }
+      .popover {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 0;
+        background: canvas;
+        border: 1px solid color-mix(in oklab, canvasText 20%, transparent);
+        border-radius: 12px;
+        padding: 12px;
+        z-index: 10;
+        gap: 8px;
+        white-space: nowrap;
+        box-shadow: 0 4px 16px color-mix(in oklab, canvasText 15%, transparent);
+      }
+      .popover.visible { display: flex; align-items: center; gap: 8px; }
+      .popover input { min-width: 120px; padding: 6px 10px; font-size: 0.9rem; }
+      .popover button { padding: 6px 10px; font-size: 0.9rem; }
+
+      /* Sticky chat bar */
+      .chat-bar {
+        position: sticky;
+        bottom: 0;
+        padding: 12px;
+        background: canvas;
+        border-top: 1px solid color-mix(in oklab, canvasText 12%, transparent);
+        border-radius: 0 0 14px 14px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .chat-bar input {
+        flex: 1;
+        min-width: 180px;
+        padding: 10px 12px;
+      }
+      .chat-bar .popover-wrap { flex-shrink: 0; }
     </style>
   </head>
   <body>
     <div class="app">
+
+      <!-- Sync banner -->
+      <div id="syncBanner">
+        <span>Edits may have happened — Sync to update context</span>
+        <button id="syncBannerBtn">Sync</button>
+      </div>
+
+      <!-- Header card -->
       <div class="card">
         <div class="row" style="justify-content: space-between;">
           <div>
@@ -71,29 +220,74 @@
         </div>
       </div>
 
+      <!-- Controls card -->
       <div class="card">
         <div class="row">
           <input id="sheetIdInput" placeholder="Sheet ID, e.g. budget-2026" />
           <button id="openButton">Open</button>
           <button id="sampleButton">Create sample</button>
           <button id="refreshButton">Refresh snapshot</button>
+          <button id="syncNowButton">Sync</button>
         </div>
         <div class="muted" style="margin-top: 8px;">EtherCalc base URL: <code>__ETHERCALC_BASE_URL__</code></div>
       </div>
 
+      <!-- Tab bar -->
+      <div class="card" style="padding: 10px 14px;">
+        <div id="tabBar" class="tab-bar">
+          <button class="tab-add" id="addTabBtn" title="Open new sheet">＋</button>
+        </div>
+        <div id="newTabRow" class="tab-new-input" style="display:none; margin-top: 8px;">
+          <input id="newTabInput" placeholder="Sheet ID…" />
+          <button id="newTabConfirm">Open</button>
+          <button id="newTabCancel">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Sheet info card -->
       <div class="card">
         <div><strong>Active sheet:</strong> <span id="sheetLabel">None</span></div>
         <div class="muted" id="actionLabel">No actions yet.</div>
+        <div id="errorLabel" class="muted" style="color: tomato; display: none; margin-top: 4px;"></div>
       </div>
 
+      <!-- Intent chips -->
       <div class="card">
+        <div class="chips" id="chipsRow">
+          <button class="chip" data-chip="summarize" disabled>Summarize</button>
+          <button class="chip" data-chip="add5rows" disabled>Add 5 rows</button>
+          <button class="chip" data-chip="sortaz" disabled>Sort A→Z</button>
+          <button class="chip" data-chip="outliers" disabled>Find outliers</button>
+          <button class="chip" data-chip="exportcsv" disabled>Export CSV</button>
+          <button class="chip" data-chip="clearall" disabled>Clear all</button>
+        </div>
+      </div>
+
+      <!-- iframe card -->
+      <div class="card" style="padding: 0; overflow: hidden;">
         <iframe id="sheetFrame" title="EtherCalc sheet"></iframe>
       </div>
 
+      <!-- Preview card -->
       <div class="card">
         <strong>Preview</strong>
         <textarea id="preview" readonly></textarea>
       </div>
+
+      <!-- Chat bar (sticky bottom) -->
+      <div class="card chat-bar">
+        <input id="askInput" placeholder="Ask about your spreadsheet…" />
+        <div class="popover-wrap" id="captureWrap">
+          <button id="captureBtn" disabled>Capture range</button>
+          <div class="popover" id="capturePopover">
+            <input id="rangeInput" placeholder="B2:D8" />
+            <button id="rangeConfirm">Confirm</button>
+            <button id="rangeCancel">Cancel</button>
+          </div>
+        </div>
+        <button id="askSendBtn" disabled>Send</button>
+      </div>
+
     </div>
 
     <script type="module">
@@ -101,34 +295,155 @@
         sheetId: null,
         ethercalcUrl: null,
         preview: [],
+        csvText: null,
+        sheets: [],       // open sheet IDs
+        activeSheetId: null,
       };
 
+      // Elements
       const statusEl = document.getElementById("status");
       const sheetLabelEl = document.getElementById("sheetLabel");
       const actionLabelEl = document.getElementById("actionLabel");
+      const errorLabelEl = document.getElementById("errorLabel");
       const frameEl = document.getElementById("sheetFrame");
       const previewEl = document.getElementById("preview");
       const sheetIdInputEl = document.getElementById("sheetIdInput");
+      const tabBarEl = document.getElementById("tabBar");
+      const addTabBtnEl = document.getElementById("addTabBtn");
+      const newTabRowEl = document.getElementById("newTabRow");
+      const newTabInputEl = document.getElementById("newTabInput");
+      const syncBannerEl = document.getElementById("syncBanner");
+      const chipsRowEl = document.getElementById("chipsRow");
+      const askInputEl = document.getElementById("askInput");
+      const askSendBtnEl = document.getElementById("askSendBtn");
+      const captureBtnEl = document.getElementById("captureBtn");
+      const captureWrapEl = document.getElementById("captureWrap");
+      const capturePopoverEl = document.getElementById("capturePopover");
 
+      // ── Sync banner timer ──────────────────────────────────────────────
+      let syncTimer = null;
+
+      function resetSyncTimer() {
+        syncBannerEl.classList.remove("visible");
+        if (syncTimer) clearTimeout(syncTimer);
+        if (state.sheetId) {
+          syncTimer = setTimeout(() => {
+            syncBannerEl.classList.add("visible");
+          }, 30000);
+        }
+      }
+
+      // ── Status / error helpers ─────────────────────────────────────────
       function setStatus(text) {
         statusEl.textContent = text;
       }
 
+      function showError(msg) {
+        if (msg) {
+          errorLabelEl.textContent = msg;
+          errorLabelEl.style.display = "block";
+        } else {
+          errorLabelEl.style.display = "none";
+        }
+      }
+
+      // ── Chips state ────────────────────────────────────────────────────
+      function updateChips() {
+        const enabled = Boolean(state.sheetId);
+        chipsRowEl.querySelectorAll(".chip").forEach((btn) => {
+          btn.disabled = !enabled;
+        });
+        askSendBtnEl.disabled = !enabled;
+        captureBtnEl.disabled = !enabled;
+      }
+
+      // ── Tab bar ────────────────────────────────────────────────────────
+      function renderTabs() {
+        // Remove existing tabs (keep add button)
+        tabBarEl.querySelectorAll(".tab").forEach((t) => t.remove());
+
+        state.sheets.forEach((id) => {
+          const tab = document.createElement("button");
+          tab.className = `tab${id === state.activeSheetId ? " active" : ""}`;
+          tab.dataset.sheetId = id;
+
+          const label = document.createElement("span");
+          label.textContent = id;
+
+          const closeBtn = document.createElement("button");
+          closeBtn.className = "tab-close";
+          closeBtn.title = `Close ${id}`;
+          closeBtn.textContent = "✕";
+          closeBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            closeTab(id);
+          });
+
+          tab.append(label, closeBtn);
+          tab.addEventListener("click", () => switchTab(id));
+          tabBarEl.insertBefore(tab, addTabBtnEl);
+        });
+      }
+
+      function pushSheet(id) {
+        if (!state.sheets.includes(id)) state.sheets.push(id);
+        state.activeSheetId = id;
+        renderTabs();
+      }
+
+      function switchTab(id) {
+        state.sheetId = id;
+        state.activeSheetId = id;
+        sheetIdInputEl.value = id;
+        sheetLabelEl.textContent = id;
+        frameEl.src = `__ETHERCALC_BASE_URL__/${encodeURIComponent(id)}`;
+        renderTabs();
+        resetSyncTimer();
+        updateChips();
+      }
+
+      function closeTab(id) {
+        state.sheets = state.sheets.filter((s) => s !== id);
+        if (state.activeSheetId === id) {
+          const next = state.sheets[state.sheets.length - 1] ?? null;
+          if (next) {
+            switchTab(next);
+          } else {
+            state.sheetId = null;
+            state.activeSheetId = null;
+            sheetLabelEl.textContent = "None";
+            frameEl.src = "";
+            updateChips();
+          }
+        }
+        renderTabs();
+      }
+
+      // ── Apply tool result ──────────────────────────────────────────────
       function applyResult(toolResult) {
         const data = toolResult?.structuredContent ?? {};
         const meta = toolResult?._meta ?? {};
         state.sheetId = data.sheetId ?? meta.sheetId ?? state.sheetId;
         state.ethercalcUrl = meta.ethercalcUrl ?? state.ethercalcUrl;
         state.preview = data.preview ?? data.sample ?? state.preview;
+        state.csvText = data.csv ?? state.csvText;
 
         sheetLabelEl.textContent = state.sheetId ?? "None";
         actionLabelEl.textContent = meta.action ? `Last action: ${meta.action}` : "No actions yet.";
-        if (state.sheetId) sheetIdInputEl.value = state.sheetId;
+        showError(null);
+
+        if (state.sheetId) {
+          sheetIdInputEl.value = state.sheetId;
+          pushSheet(state.sheetId);
+        }
         if (state.ethercalcUrl) frameEl.src = state.ethercalcUrl;
         previewEl.value = JSON.stringify(state.preview, null, 2);
         setStatus("Ready");
+        resetSyncTimer();
+        updateChips();
       }
 
+      // ── postMessage listener ───────────────────────────────────────────
       window.addEventListener("message", (event) => {
         if (event.source !== window.parent) return;
         const message = event.data;
@@ -137,8 +452,10 @@
         applyResult(message.params);
       }, { passive: true });
 
+      // ── callTool ───────────────────────────────────────────────────────
       async function callTool(name, args) {
         setStatus(`Running ${name}…`);
+        showError(null);
         const id = Math.random().toString(36).slice(2);
         return new Promise((resolve, reject) => {
           const onMessage = (event) => {
@@ -147,8 +464,10 @@
             if (!message || message.jsonrpc !== "2.0" || message.id !== id) return;
             window.removeEventListener("message", onMessage);
             if (message.error) {
+              const errMsg = message.error.message || "Tool call failed";
               setStatus("Error");
-              reject(new Error(message.error.message || "Tool call failed"));
+              showError(errMsg);
+              reject(new Error(errMsg));
               return;
             }
             applyResult(message.result);
@@ -164,10 +483,18 @@
         });
       }
 
+      // ── Button handlers ────────────────────────────────────────────────
       document.getElementById("openButton").addEventListener("click", async () => {
         const sheetId = sheetIdInputEl.value.trim();
         if (!sheetId) return;
         await callTool("open_sheet", { sheetId, maxRows: 20 });
+      });
+
+      sheetIdInputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const sheetId = sheetIdInputEl.value.trim();
+          if (sheetId) callTool("open_sheet", { sheetId, maxRows: 20 });
+        }
       });
 
       document.getElementById("refreshButton").addEventListener("click", async () => {
@@ -188,8 +515,152 @@
         });
       });
 
+      document.getElementById("syncNowButton").addEventListener("click", async () => {
+        if (!state.sheetId) return;
+        await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 20 });
+      });
+
+      document.getElementById("syncBannerBtn").addEventListener("click", async () => {
+        if (!state.sheetId) return;
+        syncBannerEl.classList.remove("visible");
+        await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 20 });
+      });
+
+      // ── New tab flow ───────────────────────────────────────────────────
+      addTabBtnEl.addEventListener("click", () => {
+        newTabRowEl.style.display = "flex";
+        newTabInputEl.focus();
+      });
+
+      document.getElementById("newTabConfirm").addEventListener("click", async () => {
+        const id = newTabInputEl.value.trim();
+        if (!id) return;
+        newTabRowEl.style.display = "none";
+        newTabInputEl.value = "";
+        sheetIdInputEl.value = id;
+        await callTool("open_sheet", { sheetId: id, maxRows: 20 });
+      });
+
+      newTabInputEl.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter") document.getElementById("newTabConfirm").click();
+        if (e.key === "Escape") document.getElementById("newTabCancel").click();
+      });
+
+      document.getElementById("newTabCancel").addEventListener("click", () => {
+        newTabRowEl.style.display = "none";
+        newTabInputEl.value = "";
+      });
+
+      // ── Intent chips ───────────────────────────────────────────────────
+      chipsRowEl.addEventListener("click", async (e) => {
+        const chip = e.target.closest(".chip");
+        if (!chip || chip.disabled || !state.sheetId) return;
+        const action = chip.dataset.chip;
+
+        if (action === "summarize") {
+          await callTool("summarize_sheet", { sheetId: state.sheetId });
+
+        } else if (action === "add5rows") {
+          await callTool("append_rows", {
+            sheetId: state.sheetId,
+            rows: [["","",""],["","",""],["","",""],["","",""],["","",""]]
+          });
+
+        } else if (action === "sortaz") {
+          await callTool("sort_sheet", { sheetId: state.sheetId, column: 0, direction: "asc" });
+
+        } else if (action === "outliers") {
+          const snapshot = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 100 });
+          window.parent.postMessage({
+            jsonrpc: "2.0",
+            method: "ui/actions/send-message",
+            params: {
+              text: `Analyze this sheet data for outliers and anomalies:\n${JSON.stringify(snapshot?.structuredContent)}`,
+            },
+          }, "*");
+
+        } else if (action === "exportcsv") {
+          const snapshot = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 10000 });
+          const csv = snapshot?.structuredContent?.csv ?? snapshot?.structuredContent?.preview
+            ?.map((row) => Object.values(row).join(",")).join("\n") ?? "";
+          const blob = new Blob([csv], { type: "text/csv" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${state.sheetId ?? "sheet"}.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+
+        } else if (action === "clearall") {
+          if (!confirm(`Clear all cells in "${state.sheetId}"? This cannot be undone.`)) return;
+          await callTool("clear_range", { sheetId: state.sheetId, range: "A1:Z1000" });
+        }
+      });
+
+      // ── Chat bar ───────────────────────────────────────────────────────
+      askSendBtnEl.addEventListener("click", async () => {
+        const text = askInputEl.value.trim();
+        if (!text || !state.sheetId) return;
+        const snapshot = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 50 });
+        window.parent.postMessage({
+          jsonrpc: "2.0",
+          method: "ui/actions/send-message",
+          params: {
+            text: `${text}\n\nCurrent sheet:\n${JSON.stringify(snapshot?.structuredContent)}`,
+          },
+        }, "*");
+        askInputEl.value = "";
+      });
+
+      askInputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") askSendBtnEl.click();
+      });
+
+      // ── Capture range popover ──────────────────────────────────────────
+      captureBtnEl.addEventListener("click", (e) => {
+        e.stopPropagation();
+        capturePopoverEl.classList.toggle("visible");
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!captureWrapEl.contains(e.target)) {
+          capturePopoverEl.classList.remove("visible");
+        }
+      });
+
+      document.getElementById("rangeCancel").addEventListener("click", () => {
+        capturePopoverEl.classList.remove("visible");
+        document.getElementById("rangeInput").value = "";
+      });
+
+      document.getElementById("rangeConfirm").addEventListener("click", async () => {
+        const range = document.getElementById("rangeInput").value.trim();
+        if (!range || !state.sheetId) return;
+        capturePopoverEl.classList.remove("visible");
+        document.getElementById("rangeInput").value = "";
+
+        let snapshot;
+        try {
+          snapshot = await callTool("get_range_snapshot", { sheetId: state.sheetId, range });
+        } catch {
+          // fall back to full snapshot
+          snapshot = await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 20 });
+        }
+
+        previewEl.value = JSON.stringify(snapshot?.structuredContent?.preview ?? state.preview, null, 2);
+        askInputEl.value = `I selected range ${range} — what can you tell me about this data?`;
+        askInputEl.focus();
+      });
+
+      document.getElementById("rangeInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") document.getElementById("rangeConfirm").click();
+        if (e.key === "Escape") document.getElementById("rangeCancel").click();
+      });
+
+      // ── Init ───────────────────────────────────────────────────────────
       setStatus("Ready");
       previewEl.value = "Open a sheet to load a preview.";
+      updateChips();
     </script>
   </body>
 </html>
