@@ -1,4 +1,4 @@
-import { createServer } from "node:http";
+import { createServer, request as httpRequest } from "node:http";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { schemas, validateArgs, makeAppContext } from "./tool-logic.js";
@@ -8,8 +8,10 @@ const MCP_PATH = process.env.MCP_PATH ?? "/mcp";
 const ethercalcBaseUrl = (process.env.ETHERCALC_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 const appBaseUrl = (process.env.APP_BASE_URL ?? `http://localhost:${port}`).replace(/\/$/, "");
 const widgetUri = "ui://widget/ethercalc-assistant-v1.html";
+// Proxy EtherCalc through /ec/* so the iframe loads over HTTPS (same origin as the app)
+const ecProxyBase = `${appBaseUrl}/ec`;
 const widgetTemplate = readFileSync(join(process.cwd(), "public", "widget.html"), "utf8")
-  .replaceAll("__ETHERCALC_BASE_URL__", ethercalcBaseUrl)
+  .replaceAll("__ETHERCALC_BASE_URL__", ecProxyBase)
   .replaceAll("__APP_BASE_URL__", appBaseUrl);
 
 const ctx = makeAppContext({ ethercalcBaseUrl });
@@ -142,8 +144,8 @@ const resource = {
       prefersBorder: true,
       domain: appBaseUrl,
       csp: {
-        connectDomains: [appBaseUrl, ethercalcBaseUrl],
-        frameDomains: [ethercalcBaseUrl],
+        connectDomains: [appBaseUrl],
+        frameDomains: [appBaseUrl],
         resourceDomains: ["https://persistent.oaistatic.com", "https://*.oaistatic.com"],
       },
     },
@@ -277,6 +279,32 @@ const httpServer = createServer(async (req, res) => {
 
   if (["/.well-known/oauth-authorization-server", "/.well-known/oauth-protected-resource"].includes(url.pathname)) {
     res.writeHead(404).end("Not Found");
+    return;
+  }
+
+  // Reverse-proxy /ec/* → EtherCalc so the iframe loads over HTTPS
+  if (url.pathname.startsWith("/ec/") || url.pathname === "/ec") {
+    const targetPath = url.pathname.slice(3) + (url.search ?? "");
+    const ecUrl = new URL(ethercalcBaseUrl);
+    const proxyReq = httpRequest(
+      {
+        hostname: ecUrl.hostname,
+        port: ecUrl.port || 80,
+        path: targetPath || "/",
+        method: req.method,
+        headers: { ...req.headers, host: ecUrl.host },
+      },
+      (proxyRes) => {
+        const hdrs = { ...proxyRes.headers };
+        // Allow framing from our app domain
+        delete hdrs["x-frame-options"];
+        hdrs["access-control-allow-origin"] = "*";
+        res.writeHead(proxyRes.statusCode, hdrs);
+        proxyRes.pipe(res);
+      }
+    );
+    proxyReq.on("error", () => res.writeHead(502).end("Proxy error"));
+    req.pipe(proxyReq);
     return;
   }
 
