@@ -3,10 +3,10 @@ import { createServer } from 'node:http';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-function startMockEtherCalc(port = 8000) {
+function startMockEtherCalc(port = 0) {
   const sheets = new Map();
   const server = createServer(async (req, res) => {
-    const url = new URL(req.url, `http://127.0.0.1:${port}`);
+    const url = new URL(req.url, `http://127.0.0.1:${server.address().port}`);
 
     if (req.method === 'PUT' && url.pathname.startsWith('/_/')) {
       const id = decodeURIComponent(url.pathname.slice(3));
@@ -49,14 +49,21 @@ function startMockEtherCalc(port = 8000) {
     res.writeHead(404).end('not found');
   });
 
-  return new Promise((resolve) => server.listen(port, () => resolve({ server, sheets })));
+  return new Promise((resolve) => server.listen(port, () => resolve({ server, sheets, port: server.address().port })));
 }
 
 test('server starts and serves health endpoint', async () => {
-  const { server: mock } = await startMockEtherCalc(8000);
+  const { server: mock, port: mockPort } = await startMockEtherCalc(0);
+
+  // find a free port for the app server
+  const appPort = await new Promise((resolve) => {
+    const tmp = createServer();
+    tmp.listen(0, () => { const p = tmp.address().port; tmp.close(() => resolve(p)); });
+  });
+
   const child = spawn('node', ['src/server.js'], {
     cwd: process.cwd(),
-    env: { ...process.env, PORT: '8787', ETHERCALC_BASE_URL: 'http://127.0.0.1:8000', APP_BASE_URL: 'http://127.0.0.1:8787' },
+    env: { ...process.env, PORT: String(appPort), ETHERCALC_BASE_URL: `http://127.0.0.1:${mockPort}`, APP_BASE_URL: `http://127.0.0.1:${appPort}` },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 
@@ -78,12 +85,12 @@ test('server starts and serves health endpoint', async () => {
       });
     });
 
-    const health = await fetch('http://127.0.0.1:8787/');
+    const health = await fetch(`http://127.0.0.1:${appPort}/`);
     assert.equal(health.status, 200);
     const json = await health.json();
     assert.equal(json.status, 'ok');
 
-    const widget = await fetch('http://127.0.0.1:8787/widget-preview');
+    const widget = await fetch(`http://127.0.0.1:${appPort}/widget-preview`);
     assert.equal(widget.status, 200);
     const html = await widget.text();
     assert.match(html, /EtherCalc Spreadsheet Assistant/);
