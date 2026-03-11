@@ -58,6 +58,16 @@ export class EtherCalcClient {
     return { sheetId: decodeURIComponent(derivedId), url: this.viewUrl(derivedId) };
   }
 
+  async postCommand(sheetId, commandText) {
+    const response = await fetch(this.roomUrl(sheetId), {
+      method: "POST",
+      headers: { "content-type": "text/x-socialcalc" },
+      body: commandText,
+    });
+    if (!response.ok) throw new Error(`Failed to post command (${response.status})`);
+    return true;
+  }
+
   async getCells(sheetId) {
     const response = await fetch(this.roomUrl(sheetId, "/cells"));
     if (!response.ok) throw new Error(`Failed to fetch cells (${response.status})`);

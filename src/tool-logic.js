@@ -2,6 +2,7 @@ import { EtherCalcClient } from "./ethercalc-client.js";
 import {
   appendRows,
   clearRange,
+  parseRange,
   setRangeValues,
   sortByColumn,
   stringifyCsv,
@@ -76,6 +77,29 @@ export const schemas = {
       maxRows: { type: "number" },
     },
   },
+  listSheets: {
+    type: "object",
+    properties: {
+      limit: { type: "number" },
+    },
+  },
+  applyFormula: {
+    type: "object",
+    required: ["sheetId", "cell", "formula"],
+    properties: {
+      sheetId: { type: "string" },
+      cell: { type: "string" },
+      formula: { type: "string" },
+    },
+  },
+  getRangeSnapshot: {
+    type: "object",
+    required: ["sheetId", "range"],
+    properties: {
+      sheetId: { type: "string" },
+      range: { type: "string" },
+    },
+  },
 };
 
 export function validateArgs(schema, args) {
@@ -90,6 +114,7 @@ export function validateArgs(schema, args) {
 
 export function makeAppContext({ ethercalcBaseUrl }) {
   const client = new EtherCalcClient(ethercalcBaseUrl);
+  const knownSheets = new Set();
 
   function widgetMeta(sheetId, action, extra = {}) {
     return {
@@ -106,6 +131,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       if (headers.length) table.push(headers);
       table.push(...rows);
       const result = await client.createSheet({ sheetId, table: table.length ? table : [[""]] });
+      knownSheets.add(result.sheetId);
       return {
         content: [{ type: "text", text: `Opened sheet ${result.sheetId}.` }],
         structuredContent: {
@@ -120,6 +146,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
 
     async openSheet({ sheetId, maxRows = 20 }) {
       const table = await client.getTable(sheetId);
+      knownSheets.add(sheetId);
       return {
         content: [{ type: "text", text: `Loaded sheet ${sheetId}.` }],
         structuredContent: {
@@ -151,6 +178,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const table = await client.getTable(sheetId);
       const updated = setRangeValues(table, startCell, values);
       await client.putTable(sheetId, updated);
+      knownSheets.add(sheetId);
       return {
         content: [{ type: "text", text: `Updated ${values.length} row(s) starting at ${startCell} in ${sheetId}.` }],
         structuredContent: {
@@ -167,6 +195,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const table = await client.getTable(sheetId);
       const updated = appendRows(table, rows);
       await client.putTable(sheetId, updated);
+      knownSheets.add(sheetId);
       return {
         content: [{ type: "text", text: `Appended ${rows.length} row(s) to ${sheetId}.` }],
         structuredContent: {
@@ -182,6 +211,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const table = await client.getTable(sheetId);
       const updated = clearRange(table, range);
       await client.putTable(sheetId, updated);
+      knownSheets.add(sheetId);
       return {
         content: [{ type: "text", text: `Cleared ${range} in ${sheetId}.` }],
         structuredContent: {
@@ -197,6 +227,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const table = await client.getTable(sheetId);
       const updated = sortByColumn(table, column, hasHeader, direction);
       await client.putTable(sheetId, updated);
+      knownSheets.add(sheetId);
       return {
         content: [{ type: "text", text: `Sorted ${sheetId} by ${column} (${direction}).` }],
         structuredContent: {
@@ -223,6 +254,61 @@ export function makeAppContext({ ethercalcBaseUrl }) {
           sample: tablePreview(table, maxRows),
         },
         _meta: widgetMeta(sheetId, "summary"),
+      };
+    },
+
+    listSheets({ limit } = {}) {
+      const all = [...knownSheets];
+      const sheets = limit ? all.slice(0, limit) : all;
+      return {
+        content: [{ type: "text", text: `Known sheets: ${sheets.join(", ") || "(none)"}` }],
+        structuredContent: { sheets },
+        _meta: { action: "list-sheets" },
+      };
+    },
+
+    async applyFormula({ sheetId, cell, formula }) {
+      let table;
+      try {
+        await client.postCommand(sheetId, `set ${cell} formula ${formula}\n`);
+        table = await client.getTable(sheetId);
+      } catch {
+        table = await client.getTable(sheetId);
+        const updated = setRangeValues(table, cell, [[formula]]);
+        await client.putTable(sheetId, updated);
+        table = updated;
+      }
+      knownSheets.add(sheetId);
+      return {
+        content: [{ type: "text", text: `Applied formula ${formula} to ${cell} in ${sheetId}.` }],
+        structuredContent: {
+          sheetId,
+          cell,
+          formula,
+          preview: tablePreview(table),
+        },
+        _meta: widgetMeta(sheetId, "apply-formula", { cell, formula }),
+      };
+    },
+
+    async getRangeSnapshot({ sheetId, range }) {
+      const table = await client.getTable(sheetId);
+      const { startRow, endRow, startCol, endCol } = parseRange(range);
+      const subTable = table
+        .slice(startRow, endRow + 1)
+        .map((row) => row.slice(startCol, endCol + 1));
+      knownSheets.add(sheetId);
+      return {
+        content: [{ type: "text", text: `Range ${range} in ${sheetId}: ${subTable.length} row(s), ${subTable[0]?.length ?? 0} column(s).` }],
+        structuredContent: {
+          sheetId,
+          range,
+          data: subTable,
+          rowCount: subTable.length,
+          columnCount: subTable[0]?.length ?? 0,
+          preview: tablePreview(subTable),
+        },
+        _meta: widgetMeta(sheetId, "range-snapshot", { range }),
       };
     },
   };
