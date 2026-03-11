@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EtherCalc Spreadsheet Assistant</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 16px;
+        background: transparent;
+        color: canvasText;
+      }
+      .app {
+        display: grid;
+        gap: 12px;
+      }
+      .card {
+        border: 1px solid color-mix(in oklab, canvasText 15%, transparent);
+        border-radius: 14px;
+        padding: 14px;
+        background: color-mix(in oklab, canvas 96%, canvasText 4%);
+      }
+      .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      input, button, textarea {
+        font: inherit;
+        border-radius: 10px;
+        border: 1px solid color-mix(in oklab, canvasText 20%, transparent);
+        padding: 10px 12px;
+        background: canvas;
+        color: canvasText;
+      }
+      input { min-width: 200px; }
+      button { cursor: pointer; }
+      iframe {
+        width: 100%;
+        height: 560px;
+        border: 0;
+        border-radius: 12px;
+        background: white;
+      }
+      pre, textarea {
+        width: 100%;
+        min-height: 140px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .muted { opacity: 0.75; font-size: 0.92rem; }
+      .pill {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 4px 10px;
+        background: color-mix(in oklab, canvasText 8%, transparent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="card">
+        <div class="row" style="justify-content: space-between;">
+          <div>
+            <strong>EtherCalc Spreadsheet Assistant</strong>
+            <div class="muted">Use chat or the controls below to open a sheet and refresh the preview.</div>
+          </div>
+          <span id="status" class="pill">Idle</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <input id="sheetIdInput" placeholder="Sheet ID, e.g. budget-2026" />
+          <button id="openButton">Open</button>
+          <button id="sampleButton">Create sample</button>
+          <button id="refreshButton">Refresh snapshot</button>
+        </div>
+        <div class="muted" style="margin-top: 8px;">EtherCalc base URL: <code>__ETHERCALC_BASE_URL__</code></div>
+      </div>
+
+      <div class="card">
+        <div><strong>Active sheet:</strong> <span id="sheetLabel">None</span></div>
+        <div class="muted" id="actionLabel">No actions yet.</div>
+      </div>
+
+      <div class="card">
+        <iframe id="sheetFrame" title="EtherCalc sheet"></iframe>
+      </div>
+
+      <div class="card">
+        <strong>Preview</strong>
+        <textarea id="preview" readonly></textarea>
+      </div>
+    </div>
+
+    <script type="module">
+      const state = {
+        sheetId: null,
+        ethercalcUrl: null,
+        preview: [],
+      };
+
+      const statusEl = document.getElementById("status");
+      const sheetLabelEl = document.getElementById("sheetLabel");
+      const actionLabelEl = document.getElementById("actionLabel");
+      const frameEl = document.getElementById("sheetFrame");
+      const previewEl = document.getElementById("preview");
+      const sheetIdInputEl = document.getElementById("sheetIdInput");
+
+      function setStatus(text) {
+        statusEl.textContent = text;
+      }
+
+      function applyResult(toolResult) {
+        const data = toolResult?.structuredContent ?? {};
+        const meta = toolResult?._meta ?? {};
+        state.sheetId = data.sheetId ?? meta.sheetId ?? state.sheetId;
+        state.ethercalcUrl = meta.ethercalcUrl ?? state.ethercalcUrl;
+        state.preview = data.preview ?? data.sample ?? state.preview;
+
+        sheetLabelEl.textContent = state.sheetId ?? "None";
+        actionLabelEl.textContent = meta.action ? `Last action: ${meta.action}` : "No actions yet.";
+        if (state.sheetId) sheetIdInputEl.value = state.sheetId;
+        if (state.ethercalcUrl) frameEl.src = state.ethercalcUrl;
+        previewEl.value = JSON.stringify(state.preview, null, 2);
+        setStatus("Ready");
+      }
+
+      window.addEventListener("message", (event) => {
+        if (event.source !== window.parent) return;
+        const message = event.data;
+        if (!message || message.jsonrpc !== "2.0") return;
+        if (message.method !== "ui/notifications/tool-result") return;
+        applyResult(message.params);
+      }, { passive: true });
+
+      async function callTool(name, args) {
+        setStatus(`Running ${name}…`);
+        const id = Math.random().toString(36).slice(2);
+        return new Promise((resolve, reject) => {
+          const onMessage = (event) => {
+            if (event.source !== window.parent) return;
+            const message = event.data;
+            if (!message || message.jsonrpc !== "2.0" || message.id !== id) return;
+            window.removeEventListener("message", onMessage);
+            if (message.error) {
+              setStatus("Error");
+              reject(new Error(message.error.message || "Tool call failed"));
+              return;
+            }
+            applyResult(message.result);
+            resolve(message.result);
+          };
+          window.addEventListener("message", onMessage);
+          window.parent.postMessage({
+            jsonrpc: "2.0",
+            id,
+            method: "tools/call",
+            params: { name, arguments: args },
+          }, "*");
+        });
+      }
+
+      document.getElementById("openButton").addEventListener("click", async () => {
+        const sheetId = sheetIdInputEl.value.trim();
+        if (!sheetId) return;
+        await callTool("open_sheet", { sheetId, maxRows: 20 });
+      });
+
+      document.getElementById("refreshButton").addEventListener("click", async () => {
+        if (!state.sheetId) return;
+        await callTool("get_sheet_snapshot", { sheetId: state.sheetId, maxRows: 20 });
+      });
+
+      document.getElementById("sampleButton").addEventListener("click", async () => {
+        const sheetId = sheetIdInputEl.value.trim() || `sample-${Date.now()}`;
+        await callTool("create_sheet", {
+          sheetId,
+          headers: ["Task", "Owner", "Status"],
+          rows: [
+            ["Ship demo", "Ava", "In progress"],
+            ["Review PRD", "Noah", "Done"],
+            ["Test EtherCalc", "Mia", "Todo"]
+          ]
+        });
+      });
+
+      setStatus("Ready");
+      previewEl.value = "Open a sheet to load a preview.";
+    </script>
+  </body>
+</html>

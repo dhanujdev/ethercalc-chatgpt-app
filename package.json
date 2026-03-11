@@ -1,0 +1,11 @@
+{
+  "name": "ethercalc-chatgpt-app",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ChatGPT App + EtherCalc spreadsheet assistant using a lightweight MCP-compatible server",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "smoke": "node test/smoke.test.js"
+  }
+}
