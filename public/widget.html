@@ -180,6 +180,60 @@
 
       /* Import/export row */
       .io-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+      /* Recent sheets popover */
+      .recent-wrap { position: relative; display: inline-block; }
+      #recentPopover {
+        display: none; position: absolute; top: calc(100% + 4px); left: 0;
+        background: canvas; border: 1px solid color-mix(in oklab, canvasText 18%, transparent);
+        border-radius: 12px; padding: 8px 0; z-index: 20; min-width: 200px;
+        box-shadow: 0 4px 20px color-mix(in oklab, canvasText 18%, transparent);
+      }
+      #recentPopover.visible { display: block; }
+      .recent-item {
+        display: block; width: 100%; padding: 7px 14px; text-align: left;
+        background: transparent; border: none; color: canvasText; cursor: pointer;
+        font: inherit; font-size: 0.88rem; white-space: nowrap; overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .recent-item:hover { background: color-mix(in oklab, canvasText 7%, transparent); }
+      .recent-sep { height: 1px; background: color-mix(in oklab, canvasText 10%, transparent); margin: 4px 0; }
+      .recent-clear {
+        display: block; width: 100%; padding: 6px 14px; text-align: left;
+        background: transparent; border: none; color: canvasText; cursor: pointer;
+        font: inherit; font-size: 0.82rem; opacity: 0.6;
+      }
+      .recent-clear:hover { opacity: 1; }
+      #recentEmpty { padding: 8px 14px; font-size: 0.85rem; opacity: 0.55; }
+
+      /* Header row */
+      #grid tr.header-row td[contenteditable] {
+        font-weight: 700;
+        background: color-mix(in oklab, canvasText 7%, canvas);
+      }
+      #grid tr.header-row td[contenteditable]:focus {
+        background: color-mix(in oklab, dodgerblue 12%, canvas);
+      }
+
+      /* Selected row / col highlight */
+      #grid tr.selected-row td[contenteditable] {
+        background: color-mix(in oklab, dodgerblue 7%, canvas);
+      }
+      #grid tr.selected-row td[contenteditable]:focus {
+        background: color-mix(in oklab, dodgerblue 12%, canvas);
+      }
+      #grid th.selected-col {
+        background: color-mix(in oklab, dodgerblue 14%, canvas);
+      }
+
+      /* Header row toggle pill */
+      .toggle-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 5px 10px; border-radius: 999px; font-size: 0.82rem;
+        border: 1px solid color-mix(in oklab, canvasText 18%, transparent);
+        background: canvas; color: canvasText; cursor: pointer; user-select: none;
+      }
+      .toggle-pill input[type="checkbox"] { accent-color: dodgerblue; margin: 0; }
     </style>
   </head>
   <body>
@@ -207,6 +261,15 @@
         <div class="row">
           <input id="sheetIdInput" class="short" placeholder="Sheet ID, e.g. budget-2026" />
           <button id="openButton">Open</button>
+          <div class="recent-wrap">
+            <button id="recentBtn" title="Recent sheets">Recent ▾</button>
+            <div id="recentPopover">
+              <span id="recentEmpty">No recent sheets</span>
+              <div id="recentList"></div>
+              <div class="recent-sep" id="recentSep" style="display:none;"></div>
+              <button class="recent-clear" id="recentClearBtn" style="display:none;">Clear history</button>
+            </div>
+          </div>
           <button id="sampleButton">Create sample</button>
           <button id="syncNowButton" disabled>Sync</button>
           <a id="externalLink" href="#" target="_blank" rel="noopener"
@@ -272,6 +335,7 @@
             <label style="padding:7px 14px; border-radius:10px; border:1px solid color-mix(in oklab,canvasText 18%,transparent); cursor:pointer; font-size:0.88rem; background:canvas; color:canvasText;">
               Import CSV <input type="file" id="onboardImport" accept=".csv" style="display:none;" />
             </label>
+            <button id="onboardDemo">Try a demo</button>
           </div>
         </div>
 
@@ -282,6 +346,14 @@
             <div class="toolbar-sep"></div>
             <input id="formulaBar" placeholder="Cell value / formula…" title="Edit active cell value" />
             <button id="formulaApply" style="padding:5px 10px; font-size:0.88rem;">Apply</button>
+            <div class="toolbar-sep"></div>
+            <button id="addRowBtn" style="padding:5px 10px; font-size:0.82rem;" disabled>+ Row</button>
+            <button id="addColBtn" style="padding:5px 10px; font-size:0.82rem;" disabled>+ Col</button>
+            <div class="toolbar-sep"></div>
+            <label class="toggle-pill" title="Mark first row as header">
+              <input type="checkbox" id="headerRowToggle" checked />
+              Header row
+            </label>
           </div>
           <div id="gridWrap">
             <div id="emptyState">Open a sheet to start editing cells.</div>
@@ -315,8 +387,63 @@
         activeSheetId: null,
         grid: [],         // 2D array of current sheet data
         activeCell: null, // { r, c }
+        headerRow: true,  // first row is treated as header
         ethercalcBaseUrl: "__ETHERCALC_BASE_URL__",
       };
+
+      // ── Recent sheets (localStorage) ────────────────────────────────────
+      const RECENT_KEY = "ec-recent-sheets";
+      const RECENT_MAX = 8;
+
+      function loadRecent() {
+        try { return JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]"); }
+        catch { return []; }
+      }
+
+      function saveRecent(list) {
+        localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+      }
+
+      function addRecent(id) {
+        const list = loadRecent().filter((x) => x !== id);
+        list.unshift(id);
+        saveRecent(list.slice(0, RECENT_MAX));
+        renderRecentPopover();
+      }
+
+      function clearRecent() {
+        saveRecent([]);
+        renderRecentPopover();
+      }
+
+      function renderRecentPopover() {
+        const list = loadRecent();
+        const recentListEl = $("recentList");
+        const recentEmptyEl = $("recentEmpty");
+        const recentSepEl = $("recentSep");
+        const recentClearBtnEl = $("recentClearBtn");
+        recentListEl.innerHTML = "";
+        if (!list.length) {
+          recentEmptyEl.style.display = "block";
+          recentSepEl.style.display = "none";
+          recentClearBtnEl.style.display = "none";
+          return;
+        }
+        recentEmptyEl.style.display = "none";
+        recentSepEl.style.display = "block";
+        recentClearBtnEl.style.display = "block";
+        for (const id of list) {
+          const btn = document.createElement("button");
+          btn.className = "recent-item";
+          btn.textContent = id;
+          btn.addEventListener("click", () => {
+            $("recentPopover").classList.remove("visible");
+            sheetIdInputEl.value = id;
+            callTool("open_sheet", { sheetId: id, maxRows: 50 });
+          });
+          recentListEl.appendChild(btn);
+        }
+      }
 
       // ── Element refs ────────────────────────────────────────────────────
       const $ = (id) => document.getElementById(id);
@@ -346,6 +473,9 @@
       const externalLinkEl = $("externalLink");
       const importBtnEl = $("importBtn");
       const exportBtnEl = $("exportBtn");
+      const addRowBtnEl = $("addRowBtn");
+      const addColBtnEl = $("addColBtn");
+      const headerRowToggleEl = $("headerRowToggle");
 
       // ── Sync banner ─────────────────────────────────────────────────────
       let syncTimer = null;
@@ -379,6 +509,8 @@
         $("syncNowButton").disabled = !on;
         importBtnEl.disabled = !on;
         exportBtnEl.disabled = !on;
+        addRowBtnEl.disabled = !on;
+        addColBtnEl.disabled = !on;
       }
 
       // ── Preview data → 2D array ─────────────────────────────────────────
@@ -419,6 +551,7 @@
         const tbody = gridEl.createTBody();
         data2d.forEach((row, r) => {
           const tr = tbody.insertRow();
+          if (r === 0 && state.headerRow) tr.classList.add("header-row");
           const rowNum = document.createElement("td");
           rowNum.className = "row-num";
           rowNum.textContent = r + 1;
@@ -438,6 +571,11 @@
         });
       }
 
+      function clearGridHighlights() {
+        gridEl.querySelectorAll("tr.selected-row").forEach((tr) => tr.classList.remove("selected-row"));
+        gridEl.querySelectorAll("th.selected-col").forEach((th) => th.classList.remove("selected-col"));
+      }
+
       function onCellFocus(e) {
         const td = e.target;
         const r = Number(td.dataset.r);
@@ -445,6 +583,13 @@
         state.activeCell = { r, c };
         cellRefEl.value = `${colLabel(c)}${r + 1}`;
         formulaBarEl.value = td.textContent;
+
+        // Highlight selected row and column header
+        clearGridHighlights();
+        td.closest("tr")?.classList.add("selected-row");
+        // Column headers are offset by 1 (first th is the corner "#")
+        const ths = gridEl.querySelectorAll("thead th");
+        if (ths[c + 1]) ths[c + 1].classList.add("selected-col");
       }
 
       async function onCellBlur(e) {
@@ -498,6 +643,11 @@
         }
       });
 
+      // Clear highlights when focus leaves the grid entirely
+      gridEl.addEventListener("focusout", (e) => {
+        if (!gridEl.contains(e.relatedTarget)) clearGridHighlights();
+      });
+
       // ── Apply tool result ───────────────────────────────────────────────
       function applyResult(toolResult) {
         const data = toolResult?.structuredContent ?? {};
@@ -507,6 +657,7 @@
         if (newSheetId) {
           state.sheetId = newSheetId;
           pushSheet(newSheetId);
+          addRecent(newSheetId);
           sheetLabelEl.textContent = newSheetId;
           sheetIdInputEl.value = newSheetId;
           // Update external link
@@ -785,9 +936,74 @@
         if (e.key === "Escape") $("rangeCancel").click();
       });
 
+      // ── Recent sheets popover ────────────────────────────────────────────
+      $("recentBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        $("recentPopover").classList.toggle("visible");
+      });
+      document.addEventListener("click", (e) => {
+        if (!$("recentBtn").closest(".recent-wrap").contains(e.target)) {
+          $("recentPopover").classList.remove("visible");
+        }
+      });
+      $("recentClearBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        clearRecent();
+      });
+
+      // ── Header row toggle ────────────────────────────────────────────────
+      headerRowToggleEl.addEventListener("change", () => {
+        state.headerRow = headerRowToggleEl.checked;
+        // Re-apply header-row class without full re-render
+        const firstRow = gridEl.querySelector("tbody tr:first-child");
+        if (firstRow) {
+          if (state.headerRow) firstRow.classList.add("header-row");
+          else firstRow.classList.remove("header-row");
+        }
+      });
+
+      // ── Add Row / Add Col ────────────────────────────────────────────────
+      addRowBtnEl.addEventListener("click", async () => {
+        if (!state.sheetId) return;
+        const cols = state.grid[0]?.length ?? 1;
+        await callTool("append_rows", { sheetId: state.sheetId, rows: [Array(cols).fill("")] });
+      });
+
+      addColBtnEl.addEventListener("click", async () => {
+        if (!state.sheetId) return;
+        const cols = state.grid[0]?.length ?? 0;
+        const newColCell = `${colLabel(cols)}1`;
+        await callTool("set_range_values", {
+          sheetId: state.sheetId,
+          startCell: newColCell,
+          values: [["Column " + colLabel(cols)]],
+        });
+      });
+
+      // ── Demo sheet ───────────────────────────────────────────────────────
+      $("onboardDemo").addEventListener("click", () => {
+        callTool("create_sheet", {
+          sheetId: "demo-sales",
+          headers: ["Product", "Region", "Q1", "Q2", "Growth%"],
+          rows: [
+            ["Widget Pro",   "North",  "12500", "15800", "26.4"],
+            ["Widget Pro",   "South",  "9400",  "11200", "19.1"],
+            ["Gadget Lite",  "North",  "7800",  "8600",  "10.3"],
+            ["Gadget Lite",  "East",   "6200",  "9100",  "46.8"],
+            ["SuperTool",    "West",   "21000", "24500", "16.7"],
+            ["SuperTool",    "East",   "18300", "19100", "4.4"],
+            ["NanoCase",     "South",  "4300",  "6700",  "55.8"],
+            ["NanoCase",     "North",  "5100",  "7200",  "41.2"],
+            ["MaxPack",      "West",   "9900",  "11400", "15.2"],
+            ["MaxPack",      "South",  "8100",  "12300", "51.9"],
+          ],
+        });
+      });
+
       // ── Init ─────────────────────────────────────────────────────────────
       setStatus("Ready");
       updateChips();
+      renderRecentPopover();
     </script>
   </body>
 </html>
