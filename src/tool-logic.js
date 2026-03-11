@@ -1,3 +1,4 @@
+import { readFileSync, writeFileSync } from "node:fs";
 import { EtherCalcClient } from "./ethercalc-client.js";
 import {
   appendRows,
@@ -8,6 +9,29 @@ import {
   stringifyCsv,
   tablePreview,
 } from "./csv-utils.js";
+
+const SESSIONS_FILE = process.env.SESSIONS_FILE ?? ".ethercalc-sessions.json";
+const MAX_RECENT = 50;
+
+function loadPersistedSheets() {
+  try {
+    const raw = readFileSync(SESSIONS_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return new Set(parsed);
+  } catch {
+    // file missing or invalid — start fresh
+  }
+  return new Set();
+}
+
+function persistSheets(set) {
+  try {
+    const entries = [...set].slice(-MAX_RECENT);
+    writeFileSync(SESSIONS_FILE, JSON.stringify(entries), "utf8");
+  } catch {
+    // non-fatal: persist is best-effort
+  }
+}
 
 export const schemas = {
   createSheet: {
@@ -160,7 +184,12 @@ export function validateArgs(schema, args) {
 
 export function makeAppContext({ ethercalcBaseUrl }) {
   const client = new EtherCalcClient(ethercalcBaseUrl);
-  const knownSheets = new Set();
+  const knownSheets = loadPersistedSheets();
+
+  function trackSheet(id) {
+    trackSheet(id);
+    persistSheets(knownSheets);
+  }
 
   function widgetMeta(sheetId, action, extra = {}) {
     return {
@@ -177,7 +206,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       if (headers.length) table.push(headers);
       table.push(...rows);
       const result = await client.createSheet({ sheetId, table: table.length ? table : [[""]] });
-      knownSheets.add(result.sheetId);
+      trackSheet(result.sheetId);
       return {
         content: [{ type: "text", text: `Opened sheet ${result.sheetId}.` }],
         structuredContent: {
@@ -192,7 +221,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
 
     async openSheet({ sheetId, maxRows = 20 }) {
       const table = await client.getTable(sheetId);
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Loaded sheet ${sheetId}.` }],
         structuredContent: {
@@ -224,7 +253,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const table = await client.getTable(sheetId);
       const updated = setRangeValues(table, startCell, values);
       await client.putTable(sheetId, updated);
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Updated ${values.length} row(s) starting at ${startCell} in ${sheetId}.` }],
         structuredContent: {
@@ -241,7 +270,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const table = await client.getTable(sheetId);
       const updated = appendRows(table, rows);
       await client.putTable(sheetId, updated);
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Appended ${rows.length} row(s) to ${sheetId}.` }],
         structuredContent: {
@@ -257,7 +286,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const table = await client.getTable(sheetId);
       const updated = clearRange(table, range);
       await client.putTable(sheetId, updated);
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Cleared ${range} in ${sheetId}.` }],
         structuredContent: {
@@ -273,7 +302,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const table = await client.getTable(sheetId);
       const updated = sortByColumn(table, column, hasHeader, direction);
       await client.putTable(sheetId, updated);
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Sorted ${sheetId} by ${column} (${direction}).` }],
         structuredContent: {
@@ -324,7 +353,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
         await client.putTable(sheetId, updated);
         table = updated;
       }
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Applied formula ${formula} to ${cell} in ${sheetId}.` }],
         structuredContent: {
@@ -343,7 +372,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const subTable = table
         .slice(startRow, endRow + 1)
         .map((row) => row.slice(startCol, endCol + 1));
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Range ${range} in ${sheetId}: ${subTable.length} row(s), ${subTable[0]?.length ?? 0} column(s).` }],
         structuredContent: {
@@ -383,7 +412,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
         })
       );
       await client.putTable(sheetId, updated);
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Replaced "${find}" with "${replace}" in ${changedCells} cell(s) in ${sheetId}.` }],
         structuredContent: {
@@ -407,7 +436,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
         return newRow;
       });
       await client.putTable(sheetId, updated);
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Added column "${header}" at position ${insertAt} in ${sheetId}.` }],
         structuredContent: {
@@ -435,7 +464,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
         }
       }
       const finalTable = await client.getTable(sheetId);
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Computed column ${targetColumn} for ${dataRows} row(s) in ${sheetId}.` }],
         structuredContent: {
@@ -453,7 +482,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const indices = [...new Set(rows.map((r) => r - 1))].sort((a, b) => b - a);
       const updated = table.filter((_, idx) => !indices.includes(idx));
       await client.putTable(sheetId, updated);
-      knownSheets.add(sheetId);
+      trackSheet(sheetId);
       return {
         content: [{ type: "text", text: `Deleted ${indices.length} row(s) from ${sheetId}.` }],
         structuredContent: {
@@ -469,7 +498,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
       const table = await client.getTable(sheetId);
       await client.putTable(newSheetId, table);
       knownSheets.delete(sheetId);
-      knownSheets.add(newSheetId);
+      trackSheet(newSheetId);
       return {
         content: [{ type: "text", text: `Renamed sheet "${sheetId}" to "${newSheetId}".` }],
         structuredContent: {
