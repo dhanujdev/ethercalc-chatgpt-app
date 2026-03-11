@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test",
-    "smoke": "node test/smoke.test.js"
+    "smoke": "node test/smoke.test.js",
+    "lint": "node --check src/server.js src/tool-logic.js src/ethercalc-client.js src/csv-utils.js"
   }
 }
