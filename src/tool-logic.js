@@ -505,15 +505,15 @@ export function makeAppContext({ ethercalcBaseUrl }) {
 
     async deleteRows({ sheetId, rows }) {
       const table = await client.getTable(sheetId);
-      const indices = [...new Set(rows.map((r) => r - 1))].sort((a, b) => b - a);
-      const updated = table.filter((_, idx) => !indices.includes(idx));
+      const indicesSet = new Set(rows.map((r) => r - 1));
+      const updated = table.filter((_, idx) => !indicesSet.has(idx));
       await client.putTable(sheetId, updated);
       trackSheet(sheetId);
       return {
-        content: [{ type: "text", text: `Deleted ${indices.length} row(s) from ${sheetId}.` }],
+        content: [{ type: "text", text: `Deleted ${indicesSet.size} row(s) from ${sheetId}.` }],
         structuredContent: {
           sheetId,
-          deletedRows: indices.length,
+          deletedRows: indicesSet.size,
           preview: tablePreview(updated),
         },
         _meta: widgetMeta(sheetId, "delete-rows", { rows }),
