@@ -25,3 +25,6 @@ jobs:
 
       - name: Unit tests
         run: node --test test/csv-utils.test.js test/tool-logic.test.js
+
+      - name: Integration tests
+        run: node --test test/smoke.test.js
