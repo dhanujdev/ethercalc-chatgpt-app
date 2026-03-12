@@ -464,17 +464,31 @@ export function makeAppContext({ ethercalcBaseUrl }) {
     async computeColumn({ sheetId, targetColumn, formula }) {
       const table = await client.getTable(sheetId);
       const dataRows = table.length > 1 ? table.length - 1 : 0;
+
+      // Try postCommand path first; if it fails, fall back to a single batch CSV write.
+      let usedCommandApi = true;
       for (let i = 1; i <= dataRows; i += 1) {
         const cell = `${targetColumn}${i + 1}`;
         const resolvedFormula = formula.replace(/\{row\}/g, String(i + 1));
         try {
           await client.postCommand(sheetId, `set ${cell} formula ${resolvedFormula}\n`);
         } catch {
-          const current = await client.getTable(sheetId);
-          const patched = setRangeValues(current, cell, [[resolvedFormula]]);
-          await client.putTable(sheetId, patched);
+          usedCommandApi = false;
+          break;
         }
       }
+
+      if (!usedCommandApi) {
+        // Batch fallback: write all formula strings in one putTable call.
+        const current = await client.getTable(sheetId);
+        const startCell = `${targetColumn}2`;
+        const formulaValues = Array.from({ length: dataRows }, (_, i) => [
+          formula.replace(/\{row\}/g, String(i + 2)),
+        ]);
+        const patched = setRangeValues(current, startCell, formulaValues);
+        await client.putTable(sheetId, patched);
+      }
+
       const finalTable = await client.getTable(sheetId);
       trackSheet(sheetId);
       return {
