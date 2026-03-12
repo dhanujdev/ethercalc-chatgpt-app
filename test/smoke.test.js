@@ -193,3 +193,110 @@ test('find_replace tool modifies sheet content via MCP', async () => {
     await new Promise((resolve) => mock.close(resolve));
   }
 });
+
+test('add_column inserts a column and returns updated preview', async () => {
+  const { server: mock, port: mockPort } = await startMockEtherCalc(0);
+  const { child, appPort } = await startAppServer(mockPort);
+
+  try {
+    await rpc(appPort, {
+      jsonrpc: '2.0', id: 1, method: 'tools/call',
+      params: { name: 'create_sheet', arguments: { sheetId: 'ac-test', headers: ['Name', 'Score'], rows: [['Ada', '90']] } },
+    });
+
+    const res = await rpc(appPort, {
+      jsonrpc: '2.0', id: 2, method: 'tools/call',
+      params: { name: 'add_column', arguments: { sheetId: 'ac-test', header: 'Grade', values: ['A'] } },
+    });
+    assert.equal(res.result.structuredContent.header, 'Grade');
+    // Preview row 0 should now have 3 columns: A=Name, B=Score, C=Grade
+    const preview = res.result.structuredContent.preview;
+    assert.ok(preview[0]['C'] === 'Grade', 'header row should contain Grade in column C');
+  } finally {
+    child.kill('SIGTERM');
+    await new Promise((resolve) => child.once('exit', resolve));
+    await new Promise((resolve) => mock.close(resolve));
+  }
+});
+
+test('delete_rows removes specified rows and returns correct count', async () => {
+  const { server: mock, port: mockPort } = await startMockEtherCalc(0);
+  const { child, appPort } = await startAppServer(mockPort);
+
+  try {
+    await rpc(appPort, {
+      jsonrpc: '2.0', id: 1, method: 'tools/call',
+      params: { name: 'create_sheet', arguments: { sheetId: 'dr-test', headers: ['X'], rows: [['a'], ['b'], ['c']] } },
+    });
+
+    const res = await rpc(appPort, {
+      jsonrpc: '2.0', id: 2, method: 'tools/call',
+      params: { name: 'delete_rows', arguments: { sheetId: 'dr-test', rows: [2, 4] } },
+    });
+    assert.equal(res.result.structuredContent.deletedRows, 2);
+    // 4 rows originally (header + 3 data); after deleting 2 data rows → 2 rows remain
+    assert.equal(res.result.structuredContent.preview.length, 2);
+  } finally {
+    child.kill('SIGTERM');
+    await new Promise((resolve) => child.once('exit', resolve));
+    await new Promise((resolve) => mock.close(resolve));
+  }
+});
+
+test('rename_sheet copies content to new id and updates list_sheets', async () => {
+  const { server: mock, port: mockPort } = await startMockEtherCalc(0);
+  const { child, appPort } = await startAppServer(mockPort);
+
+  try {
+    await rpc(appPort, {
+      jsonrpc: '2.0', id: 1, method: 'tools/call',
+      params: { name: 'create_sheet', arguments: { sheetId: 'old-name', headers: ['Col'] } },
+    });
+
+    const res = await rpc(appPort, {
+      jsonrpc: '2.0', id: 2, method: 'tools/call',
+      params: { name: 'rename_sheet', arguments: { sheetId: 'old-name', newSheetId: 'new-name' } },
+    });
+    assert.equal(res.result.structuredContent.oldSheetId, 'old-name');
+    assert.equal(res.result.structuredContent.newSheetId, 'new-name');
+
+    // list_sheets should show new-name, not old-name
+    const list = await rpc(appPort, {
+      jsonrpc: '2.0', id: 3, method: 'tools/call',
+      params: { name: 'list_sheets', arguments: {} },
+    });
+    const ids = list.result.structuredContent.sheets.map((s) => s.id);
+    assert.ok(ids.includes('new-name'), 'new-name should appear in list');
+    assert.ok(!ids.includes('old-name'), 'old-name should be removed from list');
+  } finally {
+    child.kill('SIGTERM');
+    await new Promise((resolve) => child.once('exit', resolve));
+    await new Promise((resolve) => mock.close(resolve));
+  }
+});
+
+test('compute_column batch fallback writes formula strings when postCommand unavailable', async () => {
+  const { server: mock, port: mockPort } = await startMockEtherCalc(0);
+  const { child, appPort } = await startAppServer(mockPort);
+
+  try {
+    await rpc(appPort, {
+      jsonrpc: '2.0', id: 1, method: 'tools/call',
+      params: { name: 'create_sheet', arguments: { sheetId: 'cc-test', headers: ['A', 'B', 'C'], rows: [['2', '3', ''], ['4', '5', '']] } },
+    });
+
+    const res = await rpc(appPort, {
+      jsonrpc: '2.0', id: 2, method: 'tools/call',
+      params: { name: 'compute_column', arguments: { sheetId: 'cc-test', targetColumn: 'C', formula: '=A{row}+B{row}' } },
+    });
+    assert.equal(res.result.structuredContent.rowsUpdated, 2);
+    // Mock EtherCalc doesn't support postCommand, so formula strings are written as values
+    const preview = res.result.structuredContent.preview;
+    assert.equal(preview[1]['C'], '=A2+B2');
+    assert.equal(preview[2]['C'], '=A3+B3');
+  } finally {
+    child.kill('SIGTERM');
+    await new Promise((resolve) => child.once('exit', resolve));
+    await new Promise((resolve) => mock.close(resolve));
+  }
+});
