@@ -103,6 +103,46 @@ const toolSpecs = [
     annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     handler: ctx.getRangeSnapshot,
   },
+  {
+    name: "find_replace",
+    title: "Find and replace",
+    description: "Find all occurrences of a string in a sheet (or a range) and replace them.",
+    inputSchema: schemas.findReplace,
+    annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
+    handler: ctx.findReplace,
+  },
+  {
+    name: "add_column",
+    title: "Add column",
+    description: "Insert a new column with a header and optional values at a given position (default: append).",
+    inputSchema: schemas.addColumn,
+    annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
+    handler: ctx.addColumn,
+  },
+  {
+    name: "compute_column",
+    title: "Compute column",
+    description: "Apply a formula template (use {row} as placeholder) to every data row in a target column.",
+    inputSchema: schemas.computeColumn,
+    annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
+    handler: ctx.computeColumn,
+  },
+  {
+    name: "delete_rows",
+    title: "Delete rows",
+    description: "Delete one or more rows by their 1-based row numbers.",
+    inputSchema: schemas.deleteRows,
+    annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: true },
+    handler: ctx.deleteRows,
+  },
+  {
+    name: "rename_sheet",
+    title: "Rename sheet",
+    description: "Copy a sheet's content to a new sheet ID and remove the old ID from the session registry.",
+    inputSchema: schemas.renameSheet,
+    annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
+    handler: ctx.renameSheet,
+  },
 ];
 
 function schemaToJsonSchema(schema) {

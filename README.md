@@ -1,6 +1,6 @@
 # EtherCalc Spreadsheet Assistant for ChatGPT
 
-A working starter app that embeds an EtherCalc spreadsheet in a ChatGPT app widget and exposes MCP tools for creating, opening, previewing, editing, appending, clearing, sorting, and summarizing sheets.
+A working starter app that embeds an EtherCalc spreadsheet in a ChatGPT app widget and exposes 16 MCP tools for creating, opening, previewing, editing, appending, clearing, sorting, summarizing, searching, and transforming sheets.
 
 ## What is included
 
@@ -21,11 +21,19 @@ A working starter app that embeds an EtherCalc spreadsheet in a ChatGPT app widg
 - Clear ranges
 - Sort by column
 - Summarize a sheet for the model
+- Find and replace text across cells or a scoped range
+- Add a new column with a header and optional values
+- Compute a formula column using a `{row}` template
+- Delete rows by 1-based row numbers
+- Rename a sheet (copy to new ID)
+- Apply spreadsheet formulas to individual cells
+- Read a rectangular range or single cell snapshot
+- List known sheets sorted by most-recently-used (persistent across restarts)
 - Widget buttons for open, sample creation, and refresh
 
 ## Requirements
 
-- Node.js 20+
+- Node.js 24+
 - An EtherCalc instance reachable over HTTP or HTTPS
 - ChatGPT developer mode for local connector testing
 
@@ -42,6 +50,7 @@ export PORT=8787
 export MCP_PATH=/mcp
 export ETHERCALC_BASE_URL=http://localhost:8000
 export APP_BASE_URL=http://localhost:8787
+export SESSIONS_FILE=.ethercalc-sessions.json   # optional, default shown
 ```
 
 For ChatGPT testing, `APP_BASE_URL` and the MCP endpoint must be exposed over HTTPS, usually with `ngrok` or a deployment host.
@@ -113,6 +122,11 @@ OpenAI’s quickstart says ChatGPT developer mode expects a publicly reachable H
    - `Open the q2-plan sheet`
    - `Add two rows starting at A4`
    - `Sort q2-plan by column A`
+   - `Find all cells containing "pending" and replace with "done"`
+   - `Add a Priority column to q2-plan`
+   - `Compute column D as =B{row}*C{row} for all rows`
+   - `Delete rows 3 and 5`
+   - `Rename q2-plan to q2-final`
 
 OpenAI’s quickstart describes adding the connector in developer mode and using the HTTPS URL with `/mcp`. citeturn5view0
 
@@ -122,14 +136,13 @@ EtherCalc’s API documentation shows CSV create and overwrite endpoints, comman
 
 ## Known limitations
 
-- This version rewrites CSV snapshots for edits instead of issuing fine-grained SocialCalc commands.
-- It does not implement auth or user-specific sheet permissions.
-- It does not yet support formulas, formatting commands, or undo history.
-- Approval for public directory listing may need extra review because the widget embeds a subframe, and OpenAI notes that widgets using iframe subframes are reviewed more carefully. citeturn4view1
+- Edits rewrite the full CSV snapshot instead of issuing fine-grained SocialCalc commands (no undo history).
+- No auth or user-specific sheet permissions.
+- `compute_column` writes formula strings as cell values when EtherCalc's command API is unavailable; computed values may not update dynamically.
+- Approval for public directory listing may need extra review because the widget embeds a subframe, and OpenAI notes that widgets using iframe subframes are reviewed more carefully.
 
 ## Suggested next steps
 
-- Add `apply_formula` and `find_replace` tools
 - Add auth in front of your EtherCalc instance
-- Use EtherCalc command posting for more precise operations
-- Add persistent session state and recent-sheet history
+- Use EtherCalc command posting for more precise cell operations and real formula evaluation
+- Add cell formatting support (bold, colors) via SocialCalc commands

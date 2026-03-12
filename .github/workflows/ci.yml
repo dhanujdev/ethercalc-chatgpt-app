@@ -9,13 +9,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Install dependencies
         run: npm install
@@ -24,4 +26,7 @@ jobs:
         run: npm run lint
 
       - name: Unit tests
-        run: node --test test/csv-utils.test.js
+        run: node --test test/csv-utils.test.js test/tool-logic.test.js
+
+      - name: Integration tests
+        run: node --test test/smoke.test.js
