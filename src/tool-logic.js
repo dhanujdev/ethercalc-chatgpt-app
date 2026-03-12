@@ -13,20 +13,27 @@ import {
 const SESSIONS_FILE = process.env.SESSIONS_FILE ?? ".ethercalc-sessions.json";
 const MAX_RECENT = 50;
 
-function loadPersistedSheets() {
+// history: Map<sheetId, lastAccessedISOString>  (insertion order = least-recent first)
+function loadHistory() {
   try {
     const raw = readFileSync(SESSIONS_FILE, "utf8");
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return new Set(parsed);
+    // support both legacy plain-array format and new { id, lastAccessed } format
+    if (Array.isArray(parsed)) {
+      const now = new Date().toISOString();
+      return new Map(parsed.map((entry) => (typeof entry === "string" ? [entry, now] : [entry.id, entry.lastAccessed])));
+    }
   } catch {
     // file missing or invalid — start fresh
   }
-  return new Set();
+  return new Map();
 }
 
-function persistSheets(set) {
+function persistHistory(history) {
   try {
-    const entries = [...set].slice(-MAX_RECENT);
+    const entries = [...history.entries()]
+      .slice(-MAX_RECENT)
+      .map(([id, lastAccessed]) => ({ id, lastAccessed }));
     writeFileSync(SESSIONS_FILE, JSON.stringify(entries), "utf8");
   } catch {
     // non-fatal: persist is best-effort
@@ -184,11 +191,12 @@ export function validateArgs(schema, args) {
 
 export function makeAppContext({ ethercalcBaseUrl }) {
   const client = new EtherCalcClient(ethercalcBaseUrl);
-  const knownSheets = loadPersistedSheets();
+  const history = loadHistory();
 
   function trackSheet(id) {
-    trackSheet(id);
-    persistSheets(knownSheets);
+    history.delete(id); // remove then re-add so it moves to end (most recent)
+    history.set(id, new Date().toISOString());
+    persistHistory(history);
   }
 
   function widgetMeta(sheetId, action, extra = {}) {
@@ -333,10 +341,14 @@ export function makeAppContext({ ethercalcBaseUrl }) {
     },
 
     listSheets({ limit } = {}) {
-      const all = [...knownSheets];
+      // Return sheets sorted most-recently-used first, with lastAccessed timestamps
+      const all = [...history.entries()]
+        .reverse()
+        .map(([id, lastAccessed]) => ({ id, lastAccessed }));
       const sheets = limit ? all.slice(0, limit) : all;
+      const ids = sheets.map((s) => s.id);
       return {
-        content: [{ type: "text", text: `Known sheets: ${sheets.join(", ") || "(none)"}` }],
+        content: [{ type: "text", text: `Known sheets: ${ids.join(", ") || "(none)"}` }],
         structuredContent: { sheets },
         _meta: { action: "list-sheets" },
       };
@@ -497,7 +509,7 @@ export function makeAppContext({ ethercalcBaseUrl }) {
     async renameSheet({ sheetId, newSheetId }) {
       const table = await client.getTable(sheetId);
       await client.putTable(newSheetId, table);
-      knownSheets.delete(sheetId);
+      history.delete(sheetId);
       trackSheet(newSheetId);
       return {
         content: [{ type: "text", text: `Renamed sheet "${sheetId}" to "${newSheetId}".` }],
