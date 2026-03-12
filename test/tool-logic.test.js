@@ -169,16 +169,63 @@ test('compute_column: no data rows produces empty result', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Pure logic tests for rename_sheet registry behaviour
+// MRU history logic (Map<id, lastAccessed>)
 // ---------------------------------------------------------------------------
-test('rename_sheet: updates knownSheets registry', () => {
-  const knownSheets = new Set(['old-id']);
-  const oldSheetId = 'old-id';
-  const newSheetId = 'new-id';
+function makeHistory(ids) {
+  // Oldest first — simulate being tracked in order
+  const h = new Map();
+  ids.forEach((id, i) => h.set(id, new Date(1000 + i).toISOString()));
+  return h;
+}
 
-  knownSheets.delete(oldSheetId);
-  knownSheets.add(newSheetId);
+function trackInHistory(history, id) {
+  history.delete(id);
+  history.set(id, new Date().toISOString());
+}
 
-  assert.ok(!knownSheets.has(oldSheetId));
-  assert.ok(knownSheets.has(newSheetId));
+function listMru(history, limit) {
+  const all = [...history.entries()].reverse().map(([id, lastAccessed]) => ({ id, lastAccessed }));
+  return limit ? all.slice(0, limit) : all;
+}
+
+test('rename_sheet: removes old id and tracks new id in history', () => {
+  const history = makeHistory(['old-id']);
+  history.delete('old-id');
+  trackInHistory(history, 'new-id');
+
+  assert.ok(!history.has('old-id'));
+  assert.ok(history.has('new-id'));
+});
+
+test('listSheets: returns sheets most-recently-used first', () => {
+  const history = makeHistory(['a', 'b', 'c']);
+  // Access 'a' again — should move to front
+  trackInHistory(history, 'a');
+
+  const mru = listMru(history);
+  assert.equal(mru[0].id, 'a');
+  assert.equal(mru[1].id, 'c');
+  assert.equal(mru[2].id, 'b');
+});
+
+test('listSheets: limit parameter slices from most recent', () => {
+  const history = makeHistory(['x', 'y', 'z']);
+  const mru = listMru(history, 2);
+  assert.equal(mru.length, 2);
+  assert.equal(mru[0].id, 'z');
+  assert.equal(mru[1].id, 'y');
+});
+
+test('listSheets: each entry has id and lastAccessed fields', () => {
+  const history = makeHistory(['s1']);
+  const mru = listMru(history);
+  assert.ok('id' in mru[0]);
+  assert.ok('lastAccessed' in mru[0]);
+});
+
+test('trackSheet: re-tracking existing id moves it to most recent', () => {
+  const history = makeHistory(['first', 'second', 'third']);
+  trackInHistory(history, 'first');
+  const mru = listMru(history);
+  assert.equal(mru[0].id, 'first');
 });
